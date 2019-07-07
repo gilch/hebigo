@@ -129,7 +129,16 @@ lambda: :: name
 '::::::foo':[((('foo',),),)],
 ':: :: ::foo':[((('foo',),),)],
 
-'operator..getitem:::globals':[('operator..getitem',('globals',))],
+'operator..getitem:::globals':[('operator..getitem',('globals',),)],
+
+'''
+nest: "foobar"
+  .replace: "oo" "8"
+  .upper:
+''': [('nest','("foobar")',('.replace','("oo")','("8")',),('.upper',),)],
+'''
+nest: "foobar" ::.upper .replace: "oo" "8"
+''': [('nest','("foobar")',('.upper',),('.replace','("oo")','("8")',),)],
 }
 
 class TestParser(TestCase):
