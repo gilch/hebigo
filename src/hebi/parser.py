@@ -105,29 +105,3 @@ def _parse(tokens):
         else:
             yield group
 
-code = "a"
-"""
-a: x: y:
-  b: z:
-    c:
-"""
-"""
-::
-z:a: b: c: d : e f
-  e
-"""
-"""
-for: x :in range:3
-  q
-  print: x (
-  print(x)
-)
-"""
-
-for k,v in lex(code):
-    print(k, repr(v))
-
-from pprint import pprint
-pprint([*_parse(lex(code))])
-
-print('DONE')
