@@ -40,6 +40,17 @@ IGNORE = frozenset({
     'blank',
 })
 def lex(code):
+    """
+    Because Hebigo is context sensitive, the lexer has to do extra work.
+    It keeps an indentation stack and a count of open hot word forms,
+    so it can infer when to close them.
+
+    The language rules also change when inside a Python expression.
+    Rather than re-implementing Python's complex grammar, the lexer
+    just defers to Python's parser to determine if an expression
+    that might have been completed has been.
+
+    """
     opens = 0
     indents = [0]
     tokens = iter(TOKEN.finditer(code+'\n'))
@@ -58,7 +69,7 @@ def lex(code):
                         ast.parse(python+'\n\n', mode='eval')
                     except SyntaxError as se:
                         if 'EOL' in se.msg or 'EOF' in se.msg:
-                            continue  # Not complete yet.
+                            continue  # Token not complete yet.
                         raise
                     else:
                         yield 'python', python
@@ -114,7 +125,7 @@ def parse(tokens):
             else:
                 yield ast.literal_eval(group)
         elif case == 'python':
-            # Parentheses let the compiler know it's Python expression code
+            # Parentheses let the compiler know it's Python expression code.
             yield f"({group})"
         else:
             yield group
