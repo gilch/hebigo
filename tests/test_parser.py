@@ -86,11 +86,40 @@ a: x: y:
       ('a',('b', ('c', 'd', ':', 'e', 'f'),),
        'e',),),),
 ],
-    '::a': [('a',)],
-    '::a ::b ::c': [('a',),('b',),('c',)],
-    ':: a ::b ::c': [('a',('b',),('c',),)],
+
+'::a': [('a',)],
+'::a ::b ::c': [('a',),('b',),('c',)],
+':: a ::b ::c': [('a',('b',),('c',),)],
+
+'foo: quux: spam': [('foo',('quux','spam'))],
+'foo: :: quux spam': [('foo',('quux','spam'))],
+'foo: ::quux spam': [('foo',('quux',),'spam')],
 
 'print: "Hello, World!"': [('print', '("Hello, World!")',)],
+
+'''
+lambda: name:
+    print: f"Hi, {name}!"
+''':
+    [
+    ('lambda',('name',),
+     ('print','(f"Hi, {name}!")',),)
+    ],
+
+'''
+lambda: :: name
+    print: f"Hi, {name}!"
+''':
+   [
+       ('lambda',('name',),
+        ('print','(f"Hi, {name}!")',),)
+   ],
+
+'lambda: ::name print: f"Hi, {name}!"':
+    [
+        ('lambda',('name',),
+         ('print','(f"Hi, {name}!")',),)
+    ],
 }
 
 class TestParser(TestCase):

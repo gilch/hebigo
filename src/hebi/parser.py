@@ -11,7 +11,7 @@ from hissp import compiler
 TOKEN = re.compile(r"""(?x)
  (?P<empty>\([ \r\n]*\))
 |(?P<python>[([{]|(?:[rR][bfBF]?|[bfBF][rR]?|[uU])?(?:['"]|'''|["]""))
-|(?P<end>[)\]{])
+|(?P<end>[)\]}])
 |(?P<comment>\n?[ ]*[#].*)
 |(?P<indent>(?<=\n)[ ]*(?=[^\r\n]))
 |(?P<blank>\r?\n)
@@ -22,9 +22,9 @@ TOKEN = re.compile(r"""(?x)
 |(?P<keysymbol>:\w*)
 |(?P<keyword>and|as|assert|async|await|break
   |class|continue|def|del|elif|else|except|finally|for
-  |from|global|if|import|in|is|lambda|nonlocal|not
+  |from|global|if|import|in|is|nonlocal|not
   |or|pass|raise|return|try|while|with|yield)
-|(?P<symbol>[^ \r\n])
+|(?P<symbol>[^ \r\n"')\]}]+)
 |(?P<error>.)
 """)
 
@@ -145,7 +145,7 @@ def transpile_module(
             f.write(compiler.Compiler(qualname, evaluate=True).compile(hissp))
 
 
-code = 'print: "Hello, World!"'
+code = 'print: "Hi"'
 
 for k,v in lex(code):
     print(k, repr(v))
