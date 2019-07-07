@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from hebi.parser2 import lex, _parse
+from hebi.parser import lex, _parse
 
 EXPECTED = {
 '':[],
