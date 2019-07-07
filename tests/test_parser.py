@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from hebi.parser import lex, _parse
+from hebi.parser import lex, parse
 
 EXPECTED = {
 '':[],
@@ -98,7 +98,7 @@ class TestParser(TestCase):
                 print(k)
                 lex_k = [*lex(k)]
                 print(lex_k)
-                parsed = [*_parse(lex_k)]
+                parsed = [*parse(lex_k)]
                 print(parsed)
                 self.assertEqual(parsed, v)
                 print('OK')

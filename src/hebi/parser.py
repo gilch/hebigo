@@ -85,18 +85,18 @@ def lex(code):
         yield 'close', ']EOF]'
 
 
-def _parse(tokens):
+def parse(tokens):
     tokens = iter(tokens)
     for case, group in tokens:
         if case == 'open':
-            yield (*_parse(tokens),)
+            yield (*parse(tokens),)
         elif case == 'close':
             return
         elif case == 'unary':
             if group == ':':
-                yield next(_parse(tokens)),
+                yield next(parse(tokens)),
             else:
-                yield group, next(_parse(tokens)),
+                yield group, next(parse(tokens)),
         elif case == 'symbol':
             if group.isidentifier():
                 yield group
