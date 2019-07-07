@@ -56,9 +56,10 @@ for: x :in range:3
   print: x (
   print(x)
 )
-""": [('for', 'x', ':in', ('range',3,),'q',('print','x','''\
+""": [('for', 'x', ':in', ('range',3,),'q',('print','x','''(\
 (
   print(x)
+)\
 )''',),)],
 
 """\
@@ -87,8 +88,9 @@ a: x: y:
 ],
     '::a': [('a',)],
     '::a ::b ::c': [('a',),('b',),('c',)],
-    ':: a ::b ::c': [('a',('b',),('c',),)]
+    ':: a ::b ::c': [('a',('b',),('c',),)],
 
+'print: "Hello, World!"': [('print', '("Hello, World!")',)],
 }
 
 class TestParser(TestCase):

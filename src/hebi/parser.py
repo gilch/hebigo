@@ -1,10 +1,17 @@
 import ast
+import os
 import re
+from importlib import resources
+from pathlib import PurePath, Path
+from types import ModuleType
+from typing import Union
+
+from hissp import compiler
 
 TOKEN = re.compile(r"""(?x)
  (?P<empty>\([ \r\n]*\))
 |(?P<python>[([{]|(?:[rR][bfBF]?|[bfBF][rR]?|[uU])?(?:['"]|'''|["]""))
-|(?P<end>[)\]{]|["]""|'''|['"])
+|(?P<end>[)\]{])
 |(?P<comment>\n?[ ]*[#].*)
 |(?P<indent>(?<=\n)[ ]*(?=[^\r\n]))
 |(?P<blank>\r?\n)
@@ -41,7 +48,7 @@ def lex(code):
             while 1:
                 t = next(tokens)
                 python_list.append(t.group())
-                if t.lastgroup == 'end' and t.group() == end(group):
+                if (t.lastgroup in {'end', 'python'} and t.group() == end(group)):
                     python = ''.join(python_list)
                     try:
                         ast.parse(python+'\n\n', mode='eval')
@@ -62,13 +69,13 @@ def lex(code):
                 while width < indents[-1]:
                     indents.pop()
                     opens -= 1
-                    yield 'close', ']DEDENT]'
+                    yield 'close', 'DEDENT'
             while opens >= len(indents):
                 opens -= 1
-                yield 'close', ']EQDENT]'
+                yield 'close', 'EQDENT'
         elif case == 'polyadic':
             opens += 1
-            yield 'open', '{{'
+            yield 'open', ':'
             if group != '::':
                 yield case, group[:-1]
         elif case == 'unary':
@@ -76,13 +83,13 @@ def lex(code):
         elif case == 'eol':
             while opens-1 > len(indents):
                 opens -= 1
-                yield 'close', ']EOL]'
+                yield 'close', 'EOL'
         else:
             yield case, group
 
     while opens:
         opens -= 1
-        yield 'close', ']EOF]'
+        yield 'close', 'EOF'
 
 
 def parse(tokens):
@@ -102,6 +109,44 @@ def parse(tokens):
                 yield group
             else:
                 yield ast.literal_eval(group)
+        elif case == 'python':
+            # Parentheses let the compiler know it's Python expression code
+            yield f"({group})"
         else:
             yield group
 
+
+def transpile(package: resources.Package, *modules: Union[str, PurePath]):
+    for module in modules:
+        transpile_module(package, module + ".hebi")
+
+
+def transpile_module(
+        package: resources.Package,
+        resource: Union[str, PurePath],
+        out: Union[None, str, bytes, Path] = None,
+):
+    code = resources.read_text(package, resource)
+    path: Path
+    with resources.path(package, resource) as path:
+        out = out or path.with_suffix(".py")
+        if isinstance(package, ModuleType):
+            package = package.__package__
+        if isinstance(package, os.PathLike):
+            resource = resource.stem
+        qualname = f"{package}.{resource.split('.')[0]}"
+        with open(out, "w") as f:
+            print("writing to", out)
+            hissp = parse(lex(code))
+            f.write(compiler.Compiler(qualname, evaluate=True).compile(hissp))
+
+
+code = 'print: "Hello, World!"'
+
+for k,v in lex(code):
+    print(k, repr(v))
+
+from pprint import pprint
+pprint([*parse(lex(code))])
+
+print('DONE')
