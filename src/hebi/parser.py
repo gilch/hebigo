@@ -17,13 +17,13 @@ TOKEN = re.compile(r"""(?x)
 |(?P<blank>\r?\n)
 |(?P<sp>[ ])
 |(?P<eol>(?<=\n))
-|(?P<unary>(?:\w+|:):(?=[^ \r\n]))
-|(?P<polyadic>(?:\w+|:):(?=[ \r\n]))
+|(?P<unary>(?:[.\w]+|:):(?=[^ \r\n]))
+|(?P<polyadic>(?:[.\w]+|:):(?=[ \r\n]))
 |(?P<keysymbol>:\w*)
-|(?P<keyword>and|as|assert|async|await|break
+|\b(?P<keyword>and|as|assert|async|await|break
   |class|continue|def|del|elif|else|except|finally|for
   |from|global|if|import|in|is|nonlocal|not
-  |or|pass|raise|return|try|while|with|yield)
+  |or|pass|raise|return|try|while|with|yield)\b
 |(?P<symbol>[^ \r\n"')\]}]+)
 |(?P<error>.)
 """)
@@ -109,7 +109,7 @@ def parse(tokens):
             else:
                 yield group, next(parse(tokens)),
         elif case == 'symbol':
-            if group.isidentifier():
+            if all(s.isidentifier() for s in group.split('.') if s):
                 yield group
             else:
                 yield ast.literal_eval(group)
@@ -145,7 +145,7 @@ def transpile_module(
             f.write(compiler.Compiler(qualname, evaluate=True).compile(hissp))
 
 
-code = 'print: "Hi"'
+code = 'operator..setitem'
 
 for k,v in lex(code):
     print(k, repr(v))

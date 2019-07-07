@@ -120,6 +120,16 @@ lambda: :: name
         ('lambda',('name',),
          ('print','(f"Hi, {name}!")',),)
     ],
+
+'foo.bar..spam.eggs':['foo.bar..spam.eggs'],
+'foo.bar..spam.eggs: toast':[('foo.bar..spam.eggs','toast')],
+'foo.bar..spam.eggs:toast':[('foo.bar..spam.eggs','toast')],
+
+'::::foo':[(('foo',),)],
+'::::::foo':[((('foo',),),)],
+':: :: ::foo':[((('foo',),),)],
+
+'operator..getitem:::globals':[('operator..getitem',('globals',))],
 }
 
 class TestParser(TestCase):
