@@ -1,1 +1,7 @@
-print: "Hello, World!"
+operator..setitem:
+    globals:
+    "_macro_"
+    types..SimpleNamespace:
+
+setattr: _macro_ "def_" hebi.bootstrap..def_
+

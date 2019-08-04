@@ -56,7 +56,7 @@ for: x :in range:3
   print: x (
   print(x)
 )
-""": [('for', 'x', ':in', ('range',3,),'q',('print','x','''(\
+""": [('hebi.basic.._macro_.for_', 'x', ':in', ('range',3,),'q',('print','x','''(\
 (
   print(x)
 )\
@@ -139,6 +139,23 @@ nest: "foobar"
 '''
 nest: "foobar" ::.upper .replace: "oo" "8"
 ''': [('nest','("foobar")',('.upper',),('.replace','("oo")','("8")',),)],
+
+'''
+def: a 1
+''': [('hebi.basic.._macro_.def_', 'a', 1,)],
+
+'''
+def: name: arg1 arg2 : kw1 default1
+    "docstring"
+    ...
+''': [('hebi.basic.._macro_.def_',
+       ('name', 'arg1', 'arg2', ':', 'kw1', 'default1',),
+       '("docstring")',
+       '...',)],
+
+'quote:def': [('quote', 'hebi.basic.._macro_.def_',)],
+'"def"': ['("def")'],
+'quote:"def"': [('quote', '("def")',)],
 }
 
 class TestParser(TestCase):
