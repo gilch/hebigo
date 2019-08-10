@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from hebi.parser import lex, parse
 
+
 EXPECTED = {
 '':[],
 'a':['a'],
@@ -208,6 +209,9 @@ def: greet: name
 }
 
 class TestParser(TestCase):
+    def test_transpile(self):
+        import tests.native_hebi_tests
+
     def test_examples(self):
         for k, v in EXPECTED.items():
             with self.subTest(code=k, parsed=v):
