@@ -1,0 +1,24 @@
+"""
+Native tests in the Hebi-go.
+"""
+
+def: TestCase unittest..TestCase
+# TODO: implement from:
+# from: unittest :import TestCase
+
+def: greet: name
+    print: "Hello," name
+
+hissp.basic.._macro_.deftype: TestNative :: TestCase
+   test_fail lambda: :: self
+       self.fail:
+
+# TODO: implement class:
+# class: TestNative: TestCase
+#     def: test_fail: self
+#         self.fail:
+
+def: unittest importlib..import_module: 'unittest'
+# TODO: implement import:
+# import: unittest
+(unittest.main() if __name__ == "__main__" else None)

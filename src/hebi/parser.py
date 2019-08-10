@@ -9,36 +9,36 @@ from typing import Union
 from hissp import compiler
 
 TOKEN = re.compile(r"""(?x)
- (?P<empty>\([ \r\n]*\))
-|(?P<python>[([{]|(?:[rR][bfBF]?|[bfBF][rR]?|[uU])?(?:['"]|'''|["]""))
-|(?P<end>[)\]}])
+ (?P<end>[)\]}])
 |(?P<comment>\n?[ ]*[#].*)
 |(?P<indent>(?<=\n)[ ]*(?=[^\r\n]))
+|(?P<empty>\([ \r\n]*\))
+|(?P<python>[([{]|(?:[rR][bfBF]?|[bfBF][rR]?|[uU])?(?:'''|["]""|['"]))
 |(?P<blank>\r?\n)
 |(?P<sp>[ ])
 |(?P<eol>(?<=\n))
 |(?P<unary>(?:[.\w]+|:):(?=[^ \r\n]))
 |(?P<polyadic>(?:[.\w]+|:):(?=[ \r\n]))
 |(?P<keysymbol>:\w*)
-|\b(?P<keyword>and|as|assert|async|await|break
-  |class|continue|def|del|elif|else|except|finally|for
-  |from|global|if|import|in|is|nonlocal|not
-  |or|pass|raise|return|try|while|with|yield)\b
 |(?P<symbol>[^ \r\n"')\]}]+)
-|(?P<error>.)
+|(?P<error>.|\n)
 """)
+
 
 def end(s):
     for q in ['"""', "'''", "'", '"']:
         if q in s:
             return q
-    return {'(':')','[':']','{':'}'}[s]
+    return {'(': ')', '[': ']', '{': '}'}[s]
+
 
 IGNORE = frozenset({
     'comment',
     'sp',
     'blank',
 })
+
+
 def lex(code):
     """
     Because Hebigo is context sensitive, the lexer has to do extra work.
@@ -53,7 +53,7 @@ def lex(code):
     """
     opens = 0
     indents = [0]
-    tokens = iter(TOKEN.finditer(code+'\n'))
+    tokens = iter(TOKEN.finditer(code + '\n'))
     for token in tokens:
         case = token.lastgroup
         group = token.group()
@@ -66,7 +66,7 @@ def lex(code):
                 if (t.lastgroup in {'end', 'python'} and t.group() == end(group)):
                     python = ''.join(python_list)
                     try:
-                        ast.parse(python+'\n\n', mode='eval')
+                        ast.parse(python + '\n\n', mode='eval')
                     except SyntaxError as se:
                         if 'EOL' in se.msg or 'EOF' in se.msg:
                             continue  # Token not complete yet.
@@ -96,7 +96,7 @@ def lex(code):
         elif case == 'unary':
             yield case, group[:-1]
         elif case == 'eol':
-            while opens-1 > len(indents):
+            while opens - 1 > len(indents):
                 opens -= 1
                 yield 'close', 'EOL'
         else:
@@ -107,9 +107,17 @@ def lex(code):
         yield 'close', 'EOF'
 
 
+KEYWORDS = frozenset(
+    {'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except',
+     'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'nonlocal', 'not', 'or', 'pass', 'raise', 'return',
+     'try', 'while', 'with', 'yield'})
+
+
 def parse(tokens):
     tokens = iter(tokens)
     for case, group in tokens:
+        if group in KEYWORDS:
+            group = f"hebi.basic.._macro_.{group}_"
         if case == 'open':
             yield (*parse(tokens),)
         elif case == 'close':
@@ -158,10 +166,11 @@ def transpile_module(
 
 code = 'operator..setitem'
 
-for k,v in lex(code):
+for k, v in lex(code):
     print(k, repr(v))
 
 from pprint import pprint
+
 pprint([*parse(lex(code))])
 
 print('DONE')

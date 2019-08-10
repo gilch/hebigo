@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from hebi.parser import lex, parse
 
+
 EXPECTED = {
 '':[],
 'a':['a'],
@@ -56,7 +57,7 @@ for: x :in range:3
   print: x (
   print(x)
 )
-""": [('for', 'x', ':in', ('range',3,),'q',('print','x','''(\
+""": [('hebi.basic.._macro_.for_', 'x', ':in', ('range',3,),'q',('print','x','''(\
 (
   print(x)
 )\
@@ -139,9 +140,78 @@ nest: "foobar"
 '''
 nest: "foobar" ::.upper .replace: "oo" "8"
 ''': [('nest','("foobar")',('.upper',),('.replace','("oo")','("8")',),)],
+
+'''
+def: a 1
+''': [('hebi.basic.._macro_.def_', 'a', 1,)],
+
+'''
+def: name: arg1 arg2 : kw1 default1
+    "docstring"
+    ...
+''': [('hebi.basic.._macro_.def_',
+       ('name', 'arg1', 'arg2', ':', 'kw1', 'default1',),
+       '("docstring")',
+       '...',)],
+
+'quote:def': [('quote', 'hebi.basic.._macro_.def_',)],
+'"def"': ['("def")'],
+'quote:"def"': [('quote', '("def")',)],
+'b"def"':['(b"def")'],
+
+'''"""barfoo"""
+''':['("""barfoo""")'],
+'''
+"""barfoo"""''':['("""barfoo""")'],
+'''"""
+foo
+baz
+"""''':['("""\nfoo\nbaz\n""")'],
+'''
+"""
+foo
+bar
+"""
+''':['("""\nfoo\nbar\n""")'],
+'''
+hot:
+    block
+()
+''':[
+    ('hot',
+     'block'),
+    '()'],
+'''
+hot:
+    block
+"spam"
+''':[
+    ('hot',
+     'block'),
+    '("spam")'],
+'''
+"""
+docstring
+"""
+# comment
+
+def: greet: name
+    """Says Hi."""
+    print: "Hello," name
+
+# more commentary
+(greet('World') if __name__ == '__main__' else None)
+''':['("""\ndocstring\n""")',
+('hebi.basic.._macro_.def_',('greet', 'name'),
+  '("""Says Hi.""")',
+  ('print', '("Hello,")', 'name')),
+"((greet('World') if __name__ == '__main__' else None))"]
 }
 
 class TestParser(TestCase):
+    def test_transpile(self):
+        import tests.native_hebi_tests
+
     def test_examples(self):
         for k, v in EXPECTED.items():
             with self.subTest(code=k, parsed=v):
