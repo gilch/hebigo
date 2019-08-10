@@ -156,6 +156,55 @@ def: name: arg1 arg2 : kw1 default1
 'quote:def': [('quote', 'hebi.basic.._macro_.def_',)],
 '"def"': ['("def")'],
 'quote:"def"': [('quote', '("def")',)],
+'b"def"':['(b"def")'],
+
+'''"""barfoo"""
+''':['("""barfoo""")'],
+'''
+"""barfoo"""''':['("""barfoo""")'],
+'''"""
+foo
+baz
+"""''':['("""\nfoo\nbaz\n""")'],
+'''
+"""
+foo
+bar
+"""
+''':['("""\nfoo\nbar\n""")'],
+'''
+hot:
+    block
+()
+''':[
+    ('hot',
+     'block'),
+    '()'],
+'''
+hot:
+    block
+"spam"
+''':[
+    ('hot',
+     'block'),
+    '("spam")'],
+'''
+"""
+docstring
+"""
+# comment
+
+def: greet: name
+    """Says Hi."""
+    print: "Hello," name
+
+# more commentary
+(greet('World') if __name__ == '__main__' else None)
+''':['("""\ndocstring\n""")',
+('hebi.basic.._macro_.def_',('greet', 'name'),
+  '("""Says Hi.""")',
+  ('print', '("Hello,")', 'name')),
+"((greet('World') if __name__ == '__main__' else None))"]
 }
 
 class TestParser(TestCase):

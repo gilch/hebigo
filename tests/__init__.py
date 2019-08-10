@@ -1,3 +1,3 @@
-import hebi.parser
+from src.hebi.parser import  transpile
 
-hebi.parser.transpile(__package__, "native_tests")
+transpile(__package__, "native_tests")

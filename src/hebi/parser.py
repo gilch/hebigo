@@ -9,11 +9,11 @@ from typing import Union
 from hissp import compiler
 
 TOKEN = re.compile(r"""(?x)
- (?P<empty>\([ \r\n]*\))
-|(?P<python>[([{]|(?:[rR][bfBF]?|[bfBF][rR]?|[uU])?(?:['"]|'''|["]""))
-|(?P<end>[)\]}])
+ (?P<end>[)\]}])
 |(?P<comment>\n?[ ]*[#].*)
 |(?P<indent>(?<=\n)[ ]*(?=[^\r\n]))
+|(?P<empty>\([ \r\n]*\))
+|(?P<python>[([{]|(?:[rR][bfBF]?|[bfBF][rR]?|[uU])?(?:'''|["]""|['"]))
 |(?P<blank>\r?\n)
 |(?P<sp>[ ])
 |(?P<eol>(?<=\n))
@@ -21,7 +21,7 @@ TOKEN = re.compile(r"""(?x)
 |(?P<polyadic>(?:[.\w]+|:):(?=[ \r\n]))
 |(?P<keysymbol>:\w*)
 |(?P<symbol>[^ \r\n"')\]}]+)
-|(?P<error>.)
+|(?P<error>.|\n)
 """)
 
 
