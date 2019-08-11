@@ -43,3 +43,43 @@ def function(name, fn, doc=None, qualname=None, annotations=None, dict_=()):
     fn.__dict__.update(dict_)
     return fn
 
+def import_(*specs):
+    pairs = []
+    specs = iter(specs)
+    for spec in specs:
+        if spec != ":as":
+            pairs.append([spec.split('.')[0], spec])
+        else:
+            pairs[-1][0] = next(specs)
+    return (('lambda',(),
+             *(('.__setitem__',
+                ('builtins..globals',),
+                ('quote',k),
+                ('__import__',
+                 ('quote',v),
+                 ('builtins..globals',),),)
+               for k, v in pairs),),)
+
+def from_(name, import_, *specs):
+    if import_ != ':import':
+        raise SyntaxError
+    fromlist = []
+    pairs = []
+    specs = iter(specs)
+    for spec in specs:
+        if spec != ":as":
+            pairs.extend([spec, 'module.' + spec])
+            fromlist.append(spec)
+        else:
+            pairs[-2] = next(specs)
+    sname = name.lstrip('.')
+    return (('lambda',('module',),
+             ('.update',
+              ('builtins..globals',),
+              ('dict',':',*pairs),),),
+            ('__import__',
+             ('quote',sname),
+             ':',
+             'globals',('builtins..globals',),
+             'fromlist',fromlist,
+             'level',len(name)-len(sname),),)
