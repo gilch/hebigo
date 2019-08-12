@@ -83,3 +83,49 @@ def from_(name, import_, *specs):
              'globals',('builtins..globals',),
              'fromlist',fromlist,
              'level',len(name)-len(sname),),)
+
+def _if_(b, thunk, *elifs, else_=lambda:()):
+    if b:
+        return thunk()
+    elifs = iter(elifs)
+    for elif_ in elifs:
+        if elif_():
+            return next(elifs)()
+    return else_()
+
+def if_(condition, thunk, *pairs):
+    """
+    if: (a<b)
+        ::
+            print: "less"
+        elif: (a>b)
+            print: "more"
+        elif: (a==b)
+            print: "equal"
+        else:
+            print: "nan"
+    """
+
+    else_ = ()
+    if pairs and pairs[-1][0] == 'hebi.basic.._macro_.else_':
+        *pairs, else_ = pairs
+        else_ = [
+            ':','else_',('lambda',(),*else_[1:])
+        ]
+
+    elifs = []
+    for pair in pairs:
+        if pair[0] != 'hebi.basic.._macro_.elif_':
+            raise SyntaxError(pair[0])
+        elifs.extend([
+            ('lambda',(),pair[1],),
+            ('lambda',(),*pair[2:],)
+        ])
+
+    return (
+        'hebi.bootstrap.._if_',
+        condition,
+        ('lambda',(),)+thunk,
+        *elifs,
+        *else_,
+    )

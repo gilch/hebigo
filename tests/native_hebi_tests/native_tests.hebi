@@ -9,6 +9,35 @@ def: greet: name
     print: "Hello," name
 
 hissp.basic.._macro_.deftype: TestNative :: TestCase
+    test_elif lambda: :: self
+        self.assertEqual:
+            hebi.bootstrap..if_:
+                : :* quote:::
+                    ('a'<'b')
+                    ::
+                        print: "less"
+                    elif: ('a'>'b')
+                        print: "more"
+                    elif: ('a'=='b')
+                        print: "equal"
+                    else:
+                        print: "nan"
+            quote:hebi.bootstrap.._if_:
+                ('a'<'b')
+                lambda: ::
+                    print: "less"
+                lambda: ::
+                    ('a'>'b')
+                lambda: ::
+                    print: "more"
+                lambda: ::
+                    ('a'=='b')
+                lambda: ::
+                    print: "equal"
+                : else_
+                lambda: ::
+                    print: "nan"
+
     test_fail lambda: :: self
         self.fail:
 
