@@ -5,6 +5,12 @@ from hebi.parser import lex, parse
 
 EXPECTED = {
 '':[],
+'1':[1],
+':foo':[":foo"],
+':!@$%':[":!@$%"],
+'1+1j':[1+1j],
+'-1.3e5':[-1.3e5],
+
 'a':['a'],
 '\na':['a'],
 'a\n':['a'],
@@ -205,7 +211,13 @@ def: greet: name
 ('hebi.basic.._macro_.def_',('greet', 'name'),
   '("""Says Hi.""")',
   ('print', '("Hello,")', 'name')),
-"((greet('World') if __name__ == '__main__' else None))"]
+"((greet('World') if __name__ == '__main__' else None))"],
+
+'''
+lambda: :: x : :* a b
+    print: x a
+''': [('lambda',('x',':',':*','a','b'),
+       ('print','x','a',),)],
 }
 
 class TestParser(TestCase):
