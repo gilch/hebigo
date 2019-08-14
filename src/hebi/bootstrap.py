@@ -9,12 +9,25 @@ def def_(name, *body):
     if type(name) is tuple:
         name, *args = name
         doc = None
-        if len(body) > 1 and _is_str(body[0]):
-            doc, *body = body
+        decorators = []
+        ibody = iter(body)
+        for expr in body:
+            if expr == ":@":
+                decorators.append(next(ibody))
+                continue
+            if _is_str(expr):
+                doc = expr
+                body = *ibody,
+            break
         return (
             'hebi.basic.._macro_.def_',
             name,
-            ('hebi.bootstrap..function', ('quote', name,), ('lambda', tuple(args), *body), doc),
+            _decorate(
+                decorators,
+                ('hebi.bootstrap..function',
+                 ('quote', name,),
+                 ('lambda', tuple(args), *body),
+                 doc)),
         )
     if len(body) == 1:
         return (
@@ -25,6 +38,10 @@ def def_(name, *body):
         )
     raise SyntaxError
 
+def _decorate(decorators, function):
+    for decorator in reversed(decorators):
+        function = decorator, function
+    return function
 
 def _is_str(s):
     if type(s) is str:
