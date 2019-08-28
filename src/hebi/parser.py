@@ -3,6 +3,7 @@ import os
 import re
 from importlib import resources
 from pathlib import PurePath, Path
+from pprint import pprint
 from types import ModuleType
 from typing import Union
 
@@ -17,8 +18,8 @@ TOKEN = re.compile(r"""(?x)
 |(?P<blank>\r?\n)
 |(?P<sp>[ ])
 |(?P<eol>(?<=\n))
-|(?P<unary>(?:[.\w]+|:):(?=[^ \r\n]))
-|(?P<polyadic>(?:[.\w]+|:):(?=[ \r\n]))
+|(?P<unary>(?:!?[.\w]+|:):(?=[^ \r\n]))
+|(?P<polyadic>(?:!?[.\w]+|:):(?=[ \r\n]))
 |(?P<keysymbol>:[^ \r\n"')\]}]*)
 |(?P<symbol>[^ \r\n"')\]}]+)
 |(?P<error>.|\n)
@@ -118,6 +119,8 @@ def parse(tokens):
     for case, group in tokens:
         if group in KEYWORDS:
             group = f"hebi.basic.._macro_.{group}_"
+        elif group.startswith('!'):
+            group = f"hebi.basic.._macro_.{group[1:]}"
         if case == 'open':
             yield (*parse(tokens),)
         elif case == 'close':
@@ -137,6 +140,11 @@ def parse(tokens):
             yield f"({group})"
         else:
             yield group
+
+
+def reads(hebigo):
+    res = parse(lex(hebigo))
+    return res
 
 
 def transpile(package: resources.Package, *modules: Union[str, PurePath]):
@@ -164,13 +172,18 @@ def transpile_module(
             f.write(compiler.Compiler(qualname, evaluate=True).compile(hissp))
 
 
-code = 'operator..setitem'
+code = '''\
+!foo:bar
+!spam: eggs
+  !quux
+if
+!if_
+'''
 
 for k, v in lex(code):
     print(k, repr(v))
 
-from pprint import pprint
 
-pprint([*parse(lex(code))])
+pprint(list(reads(code)))
 
 print('DONE')
