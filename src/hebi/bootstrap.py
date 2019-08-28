@@ -1,5 +1,9 @@
 import ast
-from itertools import islice, zip_longest
+import builtins
+import re
+from itertools import islice, zip_longest, chain
+
+from hissp.compiler import NS
 
 
 def def_(name, *body):
@@ -276,3 +280,43 @@ def try_(block, *handlers):
             raise SyntaxError(handler)
     return ('hebi.bootstrap.._try_',thunk,*except_,*else_,*finally_,)
 
+
+def mask(form):
+    case = type(form)
+    if case is tuple and form:
+        if _is_str(form):
+            return 'quote', form
+        if form[0] == '_':
+            return form[1]
+        return (
+            ('lambda',(':',':*','xAUTO0_',),'xAUTO0_',),
+            ':',
+            *chain.from_iterable(_mask(form)),
+        )
+    if case is str and not form.startswith(':'):
+        return 'quote', _qualify(form)
+    return form
+
+def _mask(forms):
+    for form in forms:
+        case = type(form)
+        if case is str and not form.startswith(':'):
+            yield ':?', ('quote', _qualify(form))
+        elif case is tuple and form:
+            if form[0] == '_':
+                yield ':?', form[1]
+            elif form[0] == '__':
+                yield ':*', form[1]
+            else:
+                yield ':?', mask(form)
+        else:
+            yield ':?', form
+
+def _qualify(symbol):
+    if symbol in {e for e in dir(builtins) if not e.startswith('_')}:
+        return f'builtins..{symbol}'
+    if re.search(r"\.\.|^\.|^quote$|^lambda$|xAUTO\d+_$", symbol):
+        return symbol
+    if symbol in vars(NS.get().get("_macro_", lambda: ())):
+        return f"{NS.get().get('__qualname__', '_repl')}.._macro_.{symbol}"
+    return f"{NS.get().get('__qualname__', '_repl')}..{symbol}"
