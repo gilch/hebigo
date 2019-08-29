@@ -218,6 +218,19 @@ lambda: :: x : :* a b
     print: x a
 ''': [('lambda',('x',':',':*','a','b'),
        ('print','x','a',),)],
+'''\
+!foo:bar
+!spam: eggs
+  !quux
+if
+!if_
+''':[
+    ('hebi.basic.._macro_.foo', 'bar'),
+    ('hebi.basic.._macro_.spam', 'eggs', 'hebi.basic.._macro_.quux'),
+    'hebi.basic.._macro_.if_',
+    'hebi.basic.._macro_.if_',
+]
+
 }
 
 class TestParser(TestCase):
