@@ -5,6 +5,8 @@ from itertools import islice, zip_longest, chain
 
 from hissp.compiler import NS
 
+from hebi.parser import QUALSYMBOL
+
 
 def def_(name, *body):
     """
@@ -313,10 +315,15 @@ def _mask(forms):
             yield ':?', form
 
 def _qualify(symbol):
+    if symbol.startswith('('):
+        return symbol
     if symbol in {e for e in dir(builtins) if not e.startswith('_')}:
         return f'builtins..{symbol}'
     if re.search(r"\.\.|^\.|^quote$|^lambda$|xAUTO\d+_$", symbol):
         return symbol
-    if symbol in vars(NS.get().get("_macro_", lambda: ())):
-        return f"{NS.get().get('__qualname__', '_repl')}.._macro_.{symbol}"
-    return f"{NS.get().get('__qualname__', '_repl')}..{symbol}"
+    qualname = QUALSYMBOL.get()
+    if qualname:
+        if symbol in vars(NS.get().get("_macro_", lambda: ())):
+            return f"{qualname}.._macro_.{symbol}"
+        return f"{qualname}..{symbol}"
+    return symbol

@@ -30,7 +30,7 @@ hissp.basic.._macro_.deftype: TestNative :: TestCase
                     reticulate: spline
             quote:::lambda: :: : foo spam
                 builtins..print: "Hi!"
-                tests.native_tests..greet: "World!"
+                tests.native_hebi_tests.native_tests..greet: "World!"
                 frobnicate: foo 7 24
                 reticulate: foo spline
                 foo

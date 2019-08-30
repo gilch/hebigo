@@ -1,6 +1,8 @@
 import ast
 import os
 import re
+from contextlib import contextmanager
+from contextvars import ContextVar
 from importlib import resources
 from pathlib import PurePath, Path
 from pprint import pprint
@@ -152,6 +154,18 @@ def transpile(package: resources.Package, *modules: Union[str, PurePath]):
         transpile_module(package, module + ".hebi")
 
 
+QUALSYMBOL = ContextVar("QUALSYMBOL", default=None)
+
+
+@contextmanager
+def qualify_context(qualname):
+    token = QUALSYMBOL.set(qualname)
+    try:
+        yield
+    finally:
+        QUALSYMBOL.reset(token)
+
+
 def transpile_module(
         package: resources.Package,
         resource: Union[str, PurePath],
@@ -165,11 +179,10 @@ def transpile_module(
             package = package.__package__
         if isinstance(package, os.PathLike):
             resource = resource.stem
-        qualname = f"{package}.{resource.split('.')[0]}"
-        with open(out, "w") as f:
+        with open(out, "w") as f, qualify_context(f"{package}.{resource.split('.')[0]}") as qualsymbol:
             print("writing to", out)
             hissp = parse(lex(code))
-            f.write(compiler.Compiler(qualname, evaluate=True).compile(hissp))
+            f.write(compiler.Compiler(qualsymbol, evaluate=True).compile(hissp))
 
 
 code = '''\
