@@ -9,6 +9,32 @@ def: greet: name
     print: "Hello," name
 
 hissp.basic.._macro_.deftype: TestNative :: TestCase
+    test_mask lambda: :: self
+        self.assertEqual:
+            ::  # Example based on cascade macro.
+                lambda: :: thing thing_sym : :* calls
+                    !mask:::lambda: :: : _:thing_sym _:thing
+                        print: "Hi!"  # Builtin symbol.
+                        greet: "World!"  # Local symbol.
+                        __:map:  # Splice
+                            lambda: ::call
+                                !mask:::  # Nested !mask.
+                                    _:operator..getitem: call 0
+                                    _:thing_sym
+                                    __:operator..getitem: call slice: 1 None
+                            calls
+                        _:thing_sym
+                : :*
+                quote::: spam foo
+                    frobnicate: 7 24
+                    reticulate: spline
+            quote:::lambda: :: : foo spam
+                builtins..print: "Hi!"
+                tests.native_hebi_tests.native_tests..greet: "World!"
+                frobnicate: foo 7 24
+                reticulate: foo spline
+                foo
+
     test_elif lambda: :: self
         self.assertEqual:
             hebi.bootstrap..if_:

@@ -1,8 +1,11 @@
 import ast
 import os
 import re
+from contextlib import contextmanager
+from contextvars import ContextVar
 from importlib import resources
 from pathlib import PurePath, Path
+from pprint import pprint
 from types import ModuleType
 from typing import Union
 
@@ -17,8 +20,8 @@ TOKEN = re.compile(r"""(?x)
 |(?P<blank>\r?\n)
 |(?P<sp>[ ])
 |(?P<eol>(?<=\n))
-|(?P<unary>(?:[.\w]+|:):(?=[^ \r\n]))
-|(?P<polyadic>(?:[.\w]+|:):(?=[ \r\n]))
+|(?P<unary>(?:!?[.\w]+|:):(?=[^ \r\n]))
+|(?P<polyadic>(?:!?[.\w]+|:):(?=[ \r\n]))
 |(?P<keysymbol>:[^ \r\n"')\]}]*)
 |(?P<symbol>[^ \r\n"')\]}]+)
 |(?P<error>.|\n)
@@ -118,6 +121,8 @@ def parse(tokens):
     for case, group in tokens:
         if group in KEYWORDS:
             group = f"hebi.basic.._macro_.{group}_"
+        elif group.startswith('!'):
+            group = f"hebi.basic.._macro_.{group[1:]}"
         if case == 'open':
             yield (*parse(tokens),)
         elif case == 'close':
@@ -139,9 +144,26 @@ def parse(tokens):
             yield group
 
 
+def reads(hebigo):
+    res = parse(lex(hebigo))
+    return res
+
+
 def transpile(package: resources.Package, *modules: Union[str, PurePath]):
     for module in modules:
         transpile_module(package, module + ".hebi")
+
+
+QUALSYMBOL = ContextVar("QUALSYMBOL", default=None)
+
+
+@contextmanager
+def qualify_context(qualname):
+    token = QUALSYMBOL.set(qualname)
+    try:
+        yield
+    finally:
+        QUALSYMBOL.reset(token)
 
 
 def transpile_module(
@@ -157,20 +179,24 @@ def transpile_module(
             package = package.__package__
         if isinstance(package, os.PathLike):
             resource = resource.stem
-        qualname = f"{package}.{resource.split('.')[0]}"
-        with open(out, "w") as f:
+        with open(out, "w") as f, qualify_context(f"{package}.{resource.split('.')[0]}") as qualsymbol:
             print("writing to", out)
             hissp = parse(lex(code))
-            f.write(compiler.Compiler(qualname, evaluate=True).compile(hissp))
+            f.write(compiler.Compiler(qualsymbol, evaluate=True).compile(hissp))
 
 
-code = 'operator..setitem'
+code = '''\
+!foo:bar
+!spam: eggs
+  !quux
+if
+!if_
+'''
 
 for k, v in lex(code):
     print(k, repr(v))
 
-from pprint import pprint
 
-pprint([*parse(lex(code))])
+pprint(list(reads(code)))
 
 print('DONE')
