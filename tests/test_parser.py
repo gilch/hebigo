@@ -83,8 +83,8 @@ a: x: y:
 """: [('a',('x',('y',),),('b',('z',),('c',),),)],
 
 """\
-::
-::
+pass:
+pass:
   z:a: b: c: d : e f
     e
 """: [
@@ -94,13 +94,13 @@ a: x: y:
        'e',),),),
 ],
 
-'::a': [('a',)],
-'::a ::b ::c': [('a',),('b',),('c',)],
-':: a ::b ::c': [('a',('b',),('c',),)],
+'pass:a': [('a',)],
+'pass:a pass:b pass:c': [('a',),('b',),('c',)],
+'pass: a pass:b pass:c': [('a',('b',),('c',),)],
 
 'foo: quux: spam': [('foo',('quux','spam'))],
-'foo: :: quux spam': [('foo',('quux','spam'))],
-'foo: ::quux spam': [('foo',('quux',),'spam')],
+'foo: pass: quux spam': [('foo',('quux','spam'))],
+'foo: pass:quux spam': [('foo',('quux',),'spam')],
 
 'print: "Hello, World!"': [('print', '("Hello, World!")',)],
 
@@ -114,7 +114,7 @@ lambda: name:
     ],
 
 '''
-lambda: :: name
+lambda: pass: name
     print: f"Hi, {name}!"
 ''':
    [
@@ -122,7 +122,7 @@ lambda: :: name
         ('print','(f"Hi, {name}!")',),)
    ],
 
-'lambda: ::name print: f"Hi, {name}!"':
+'lambda: pass:name print: f"Hi, {name}!"':
     [
         ('lambda',('name',),
          ('print','(f"Hi, {name}!")',),)
@@ -132,11 +132,11 @@ lambda: :: name
 'foo.bar..spam.eggs: toast':[('foo.bar..spam.eggs','toast')],
 'foo.bar..spam.eggs:toast':[('foo.bar..spam.eggs','toast')],
 
-'::::foo':[(('foo',),)],
-'::::::foo':[((('foo',),),)],
-':: :: ::foo':[((('foo',),),)],
+'pass:pass:foo':[(('foo',),)],
+'pass:pass:pass:foo':[((('foo',),),)],
+'pass: pass: pass:foo':[((('foo',),),)],
 
-'operator..getitem:::globals':[('operator..getitem',('globals',),)],
+'operator..getitem:pass:globals':[('operator..getitem',('globals',),)],
 
 '''
 nest: "foobar"
@@ -144,7 +144,7 @@ nest: "foobar"
   .upper:
 ''': [('nest','("foobar")',('.replace','("oo")','("8")',),('.upper',),)],
 '''
-nest: "foobar" ::.upper .replace: "oo" "8"
+nest: "foobar" pass:.upper .replace: "oo" "8"
 ''': [('nest','("foobar")',('.upper',),('.replace','("oo")','("8")',),)],
 
 '''
@@ -214,7 +214,7 @@ def: greet: name
 "((greet('World') if __name__ == '__main__' else None))"],
 
 '''
-lambda: :: x : :* a b
+lambda: pass: x : :* a b
     print: x a
 ''': [('lambda',('x',':',':*','a','b'),
        ('print','x','a',),)],
