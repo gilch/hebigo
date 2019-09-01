@@ -126,7 +126,7 @@ def _if_(b, thunk, *elifs, else_=lambda:()):
 def if_(condition, thunk, *pairs):
     """
     if: (a<b)
-        ::
+        pass:
             print: "less"
         elif: (a>b)
             print: "more"
@@ -243,7 +243,7 @@ def _try_(thunk, *except_, else_=None, finally_=lambda:()):
 def try_(block, *handlers):
     """
     try:
-        ::
+        pass:
             print: "It's dangerous!"
             something_risky: thing
         except: LikelyProblemError

@@ -20,8 +20,8 @@ TOKEN = re.compile(r"""(?x)
 |(?P<blank>\r?\n)
 |(?P<sp>[ ])
 |(?P<eol>(?<=\n))
-|(?P<unary>(?:!?[.\w]+|:):(?=[^ \r\n]))
-|(?P<polyadic>(?:!?[.\w]+|:):(?=[ \r\n]))
+|(?P<unary>(?:!?[.\w]+):(?=[^ \r\n]))
+|(?P<polyadic>(?:!?[.\w]+):(?=[ \r\n]))
 |(?P<keysymbol>:[^ \r\n"')\]}]*)
 |(?P<symbol>[^ \r\n"')\]}]+)
 |(?P<error>.|\n)
@@ -94,7 +94,7 @@ def lex(code):
         elif case == 'polyadic':
             opens += 1
             yield 'open', ':'
-            if group != '::':
+            if group != 'pass:':
                 yield case, group[:-1]
         elif case == 'unary':
             yield case, group[:-1]
@@ -112,7 +112,7 @@ def lex(code):
 
 KEYWORDS = frozenset(
     {'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except',
-     'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'nonlocal', 'not', 'or', 'pass', 'raise', 'return',
+     'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'nonlocal', 'not', 'or', 'raise', 'return',
      'try', 'while', 'with', 'yield'})
 
 
@@ -128,7 +128,7 @@ def parse(tokens):
         elif case == 'close':
             return
         elif case == 'unary':
-            if group == ':':
+            if group == 'pass':
                 yield next(parse(tokens)),
             else:
                 yield group, next(parse(tokens)),

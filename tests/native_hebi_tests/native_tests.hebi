@@ -8,39 +8,39 @@ print: TestCase
 def: greet: name
     print: "Hello," name
 
-hissp.basic.._macro_.deftype: TestNative :: TestCase
-    test_mask lambda: :: self
+hissp.basic.._macro_.deftype: TestNative pass: TestCase
+    test_mask lambda: pass: self
         self.assertEqual:
-            ::  # Example based on cascade macro.
-                lambda: :: thing thing_sym : :* calls
-                    !mask:::lambda: :: : _:thing_sym _:thing
+            pass:  # Example based on cascade macro.
+                lambda: pass: thing thing_sym : :* calls
+                    !mask:pass:lambda: pass: : _:thing_sym _:thing
                         print: "Hi!"  # Builtin symbol.
                         greet: "World!"  # Local symbol.
                         __:map:  # Splice
-                            lambda: ::call
-                                !mask:::  # Nested !mask.
+                            lambda: pass:call
+                                !mask:pass:  # Nested !mask.
                                     _:operator..getitem: call 0
                                     _:thing_sym
                                     __:operator..getitem: call slice: 1 None
                             calls
                         _:thing_sym
                 : :*
-                quote::: spam foo
+                quote:pass: spam foo
                     frobnicate: 7 24
                     reticulate: spline
-            quote:::lambda: :: : foo spam
+            quote:pass:lambda: pass: : foo spam
                 builtins..print: "Hi!"
                 tests.native_hebi_tests.native_tests..greet: "World!"
                 frobnicate: foo 7 24
                 reticulate: foo spline
                 foo
 
-    test_elif lambda: :: self
+    test_elif lambda: pass: self
         self.assertEqual:
             hebi.bootstrap..if_:
-                : :* quote:::
+                : :* quote:pass:
                     ('a'<'b')
-                    ::
+                    pass:
                         print: "less"
                     elif: ('a'>'b')
                         print: "more"
@@ -50,21 +50,21 @@ hissp.basic.._macro_.deftype: TestNative :: TestCase
                         print: "nan"
             quote:hebi.bootstrap.._if_:
                 ('a'<'b')
-                lambda: ::
+                lambda: pass:
                     print: "less"
-                lambda: ::
+                lambda: pass:
                     ('a'>'b')
-                lambda: ::
+                lambda: pass:
                     print: "more"
-                lambda: ::
+                lambda: pass:
                     ('a'=='b')
-                lambda: ::
+                lambda: pass:
                     print: "equal"
                 : else_
-                lambda: ::
+                lambda: pass:
                     print: "nan"
 
-    test_fail lambda: :: self
+    test_fail lambda: pass: self
         self.fail:
 
 # TODO: implement class:
