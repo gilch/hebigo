@@ -384,3 +384,18 @@ def _qualify(symbol):
 
 def begin(*args):
     return ('lambda', (), *args)
+
+
+def _with_(guard, body):
+    with guard() as g:
+        return body(g)
+
+
+def with_(guard, *body):
+    """
+    with: foo:bar :as baz
+        frobnicate: baz
+    """
+    if len(body) > 2 and body[1] == ':as':
+        return 'hebi.bootstrap.._with_', ('lambda',(),guard), ('lambda',(body[2],),*body[3:]),
+    return 'hebi.bootstrap.._with_', ('lambda',(),guard), ('lambda',('xAUTO0_'),*body),
