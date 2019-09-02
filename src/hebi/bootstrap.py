@@ -7,6 +7,10 @@ from hissp.compiler import NS
 
 from hebi.parser import QUALSYMBOL
 
+BOOTSTRAP = 'hebi.bootstrap..'
+
+def _thunk(*args):
+    return ('lambda', (), *args)
 
 def _and_(expr, *thunks):
     result = expr
@@ -21,8 +25,8 @@ def and_(*args):
     if args:
         if len(args) == 1:
             return args[0]
-        return ('hebi.bootstrap.._and_', args[0], *(
-            ('lambda',(),arg) for arg in args[1:]
+        return ('_and_', args[0], *(
+            _thunk(arg) for arg in args[1:]
         ))
     return True
 
@@ -40,8 +44,8 @@ def or_(*args):
     if args:
         if len(args) == 1:
             return args[0]
-        return ('hebi.bootstrap.._or_', args[0], *(
-            ('lambda',(),arg) for arg in args[1:]
+        return (BOOTSTRAP + '_or_', args[0], *(
+            _thunk(arg) for arg in args[1:]
         ))
     return ()
 
@@ -51,7 +55,7 @@ def _not_(b):
 
 
 def not_(expr):
-    return ('hebi.bootstrap.._not_', expr)
+    return (BOOTSTRAP + '_not_', expr)
 
 
 def def_(name, *body):
@@ -76,7 +80,7 @@ def def_(name, *body):
             name,
             _decorate(
                 decorators,
-                ('hebi.bootstrap..function',
+                (BOOTSTRAP + 'function',
                  ('quote', name,),
                  ('lambda', tuple(args), *body),
                  doc)),
@@ -126,7 +130,7 @@ def import_(*specs):
             pairs.append([spec.split('.')[0], spec])
         else:
             pairs[-1][0] = next(specs)
-    return (('lambda',(),
+    return (_thunk(
              *(('.__setitem__',
                 ('builtins..globals',),
                 ('quote',k),
@@ -188,7 +192,7 @@ def if_(condition, then, *pairs):
     if pairs and pairs[-1][0] == ':else':
         *pairs, else_ = pairs
         else_ = [
-            ':','else_',('lambda',(),*else_[1:])
+            ':','else_',_thunk(*else_[1:])
         ]
 
     elifs = []
@@ -196,17 +200,17 @@ def if_(condition, then, *pairs):
         if pair[0] != ':elif':
             raise SyntaxError(pair[0])
         elifs.extend([
-            ('lambda',(),pair[1],),
-            ('lambda',(),*pair[2:],)
+            _thunk(pair[1],),
+            _thunk(*pair[2:],)
         ])
 
     if then[0] != ':then':
         raise SyntaxError(then)
 
     return (
-        'hebi.bootstrap.._if_',
+        BOOTSTRAP + '_if_',
         condition,
-        ('lambda',(),)+then[1:],
+        _thunk(*then[1:]),
         *elifs,
         *else_,
     )
@@ -219,11 +223,11 @@ def _raise_():
     raise
 
 
-def _raise_ex_(ex):
+def _raise_ex(ex):
     raise ex
 
 
-def _raise_ex_from_(ex, from_):
+def _raise_ex_from(ex, from_):
     raise ex from from_
 
 
@@ -231,11 +235,11 @@ def raise_(ex=None, key=_sentinel, from_=_sentinel):
     if ex:
         if key is not _sentinel:
             if key == ':from':
-                return ('hebi.bootstrap.._raise_ex_from_', ex, from_,)
+                return (BOOTSTRAP + '_raise_ex_from', ex, from_,)
             else:
                 raise SyntaxError(key)
-        return ('hebi.bootstrap.._raise_ex_', ex)
-    return ('hebi.bootstrap.._raise_')
+        return (BOOTSTRAP + '_raise_ex', ex)
+    return (BOOTSTRAP + '_raise')
 
 
 def partition(iterable, n=2, step=None, fillvalue=_sentinel):
@@ -308,7 +312,6 @@ def try_(expr, *handlers):
         :finally:
             .close: thing
     """
-    thunk = ('lambda',(),) + expr
     else_ = ()
     finally_ = ()
     except_ = []
@@ -324,14 +327,14 @@ def try_(expr, *handlers):
         elif handler[0] == ':else':
             if else_:
                 raise SyntaxError(handler)
-            else_ = ('lambda',(),handler[1:],),
+            else_ = _thunk('lambda',(),handler[1:],),
         elif handler[0] == ':finally':
             if finally_:
                 raise SyntaxError(handler)
-            finally_ = ('lambda',(),handler[1:],),
+            finally_ = _thunk('lambda',(),handler[1:],),
         else:
             raise SyntaxError(handler)
-    return ('hebi.bootstrap.._try_',thunk,*except_,*else_,*finally_,)
+    return (BOOTSTRAP + '_try_', _thunk(*expr), *except_, *else_, *finally_,)
 
 
 def mask(form):
@@ -383,7 +386,7 @@ def _qualify(symbol):
 
 
 def begin(*args):
-    return ('lambda', (), *args)
+    return _thunk(*args)
 
 
 def _with_(guard, body):
@@ -397,5 +400,7 @@ def with_(guard, *body):
         frobnicate: baz
     """
     if len(body) > 2 and body[1] == ':as':
-        return 'hebi.bootstrap.._with_', ('lambda',(),guard), ('lambda',(body[2],),*body[3:]),
-    return 'hebi.bootstrap.._with_', ('lambda',(),guard), ('lambda',('xAUTO0_'),*body),
+        return BOOTSTRAP + '_with_', _thunk(guard), ('lambda',(body[2],),*body[3:]),
+    return BOOTSTRAP + '_with_', _thunk(guard), ('lambda',('xAUTO0_'),*body),
+
+
