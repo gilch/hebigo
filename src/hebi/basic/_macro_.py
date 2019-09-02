@@ -10,4 +10,5 @@ from ..bootstrap import (
     or_,
     not_,
     with_,
+    assert_,
 )

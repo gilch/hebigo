@@ -404,3 +404,14 @@ def with_(guard, *body):
     return BOOTSTRAP + '_with_', _thunk(guard), ('lambda',('xAUTO0_'),*body),
 
 
+def _assert_(b):
+    assert b
+
+
+def _assert_message(b, thunk):
+    assert b, thunk()
+
+def assert_(b, *message):
+    if message:
+        return BOOTSTRAP + '_assert_', b
+    return BOOTSTRAP + '_assert_message', b, _thunk(*message)
