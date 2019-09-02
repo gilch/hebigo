@@ -123,21 +123,21 @@ def _if_(b, thunk, *elifs, else_=lambda:()):
     return else_()
 
 
-def if_(condition, thunk, *pairs):
+def if_(condition, then, *pairs):
     """
     if: (a<b)
-        pass:
+        :then:
             print: "less"
-        elif: (a>b)
+        :elif: (a>b)
             print: "more"
-        elif: (a==b)
+        :elif: (a==b)
             print: "equal"
-        else:
+        :else:
             print: "nan"
     """
 
     else_ = ()
-    if pairs and pairs[-1][0] == 'hebi.basic.._macro_.else_':
+    if pairs and pairs[-1][0] == ':else':
         *pairs, else_ = pairs
         else_ = [
             ':','else_',('lambda',(),*else_[1:])
@@ -145,17 +145,20 @@ def if_(condition, thunk, *pairs):
 
     elifs = []
     for pair in pairs:
-        if pair[0] != 'hebi.basic.._macro_.elif_':
+        if pair[0] != ':elif':
             raise SyntaxError(pair[0])
         elifs.extend([
             ('lambda',(),pair[1],),
             ('lambda',(),*pair[2:],)
         ])
 
+    if then[0] != ':then':
+        raise SyntaxError(then)
+
     return (
         'hebi.bootstrap.._if_',
         condition,
-        ('lambda',(),)+thunk,
+        ('lambda',(),)+then[1:],
         *elifs,
         *else_,
     )
@@ -240,29 +243,29 @@ def _try_(thunk, *except_, else_=None, finally_=lambda:()):
     return res
 
 
-def try_(block, *handlers):
+def try_(expr, *handlers):
     """
     try:
-        pass:
+        !begin:
             print: "It's dangerous!"
             something_risky: thing
-        except: LikelyProblemError
+        :except: LikelyProblemError
             print: "Oops!"
             fix_it:
-        except: Exception :as ex
+        :except: Exception :as ex
             do_something: ex
-        else:
+        :else:
             print: "Hooray!"
             thing
-        finally:
+        :finally:
             .close: thing
     """
-    thunk = ('lambda',(),) + block
+    thunk = ('lambda',(),) + expr
     else_ = ()
     finally_ = ()
     except_ = []
     for handler in partition(handlers):
-        if handler[0] == 'hebi.bootstrap..except_':
+        if handler[0] == ':except':
             if len(handler) > 3 and handler[2] == ':as':
                 arg = handler[3]
                 block_start = 4
@@ -270,11 +273,11 @@ def try_(block, *handlers):
                 arg = 'xAUTO0_'
                 block_start = 2
             except_.extend([handler[1], ('lambda',(arg,),*handler[block_start:],)])
-        elif handler[0] == 'hebi.bootstrap..else_':
+        elif handler[0] == ':else':
             if else_:
                 raise SyntaxError(handler)
             else_ = ('lambda',(),handler[1:],),
-        elif handler[0] == 'hebi.bootstrap..finally_':
+        elif handler[0] == ':finally':
             if finally_:
                 raise SyntaxError(handler)
             finally_ = ('lambda',(),handler[1:],),
@@ -288,7 +291,7 @@ def mask(form):
     if case is tuple and form:
         if _is_str(form):
             return 'quote', form
-        if form[0] == '_':
+        if form[0] == ':,':
             return form[1]
         return (
             ('lambda',(':',':*','xAUTO0_',),'xAUTO0_',),
@@ -305,9 +308,9 @@ def _mask(forms):
         if case is str and not form.startswith(':'):
             yield ':?', ('quote', _qualify(form))
         elif case is tuple and form:
-            if form[0] == '_':
+            if form[0] == ':,':
                 yield ':?', form[1]
-            elif form[0] == '__':
+            elif form[0] == ':,@':
                 yield ':*', form[1]
             else:
                 yield ':?', mask(form)
@@ -327,3 +330,6 @@ def _qualify(symbol):
             return f"{qualname}.._macro_.{symbol}"
         return f"{qualname}..{symbol}"
     return symbol
+
+def begin(*args):
+    return ('lambda', (), *args)

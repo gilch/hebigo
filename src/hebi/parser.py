@@ -20,9 +20,20 @@ TOKEN = re.compile(r"""(?x)
 |(?P<blank>\r?\n)
 |(?P<sp>[ ])
 |(?P<eol>(?<=\n))
-|(?P<unary>(?:!?[.\w]+):(?=[^ \r\n]))
-|(?P<polyadic>(?:!?[.\w]+):(?=[ \r\n]))
-|(?P<keysymbol>:[^ \r\n"')\]}]*)
+
+# Hotwords
+|(?P<unary>(?:
+    !?  # basic macro?
+    [.\w]+  # unary symbol
+    |:[^ \r\n"')\]}]*  # unary control word
+    ):(?=[^ \r\n]))  # lack of space after ending colon makes it unary
+|(?P<polyadic>(?:
+    !?  # basic macro?
+    [.\w]+  # polyadic symbol
+    |:[^ \r\n"')\]}]*  # polyadic control word
+    ):(?=[ \r\n]))  # space after ending colon makes in polyadic
+
+|(?P<controlword>:[^ \r\n"')\]}]*)
 |(?P<symbol>[^ \r\n"')\]}]+)
 |(?P<error>.|\n)
 """)
@@ -110,7 +121,7 @@ def lex(code):
         yield 'close', 'EOF'
 
 
-KEYWORDS = frozenset(
+RESERVED_WORDS = frozenset(
     {'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except',
      'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'nonlocal', 'not', 'or', 'raise', 'return',
      'try', 'while', 'with', 'yield'})
@@ -119,7 +130,7 @@ KEYWORDS = frozenset(
 def parse(tokens):
     tokens = iter(tokens)
     for case, group in tokens:
-        if group in KEYWORDS:
+        if group in RESERVED_WORDS:
             group = f"hebi.basic.._macro_.{group}_"
         elif group.startswith('!'):
             group = f"hebi.basic.._macro_.{group[1:]}"
@@ -186,11 +197,7 @@ def transpile_module(
 
 
 code = '''\
-!foo:bar
-!spam: eggs
-  !quux
-if
-!if_
+:,:foo
 '''
 
 for k, v in lex(code):

@@ -13,17 +13,17 @@ hissp.basic.._macro_.deftype: TestNative pass: TestCase
         self.assertEqual:
             pass:  # Example based on cascade macro.
                 lambda: pass: thing thing_sym : :* calls
-                    !mask:pass:lambda: pass: : _:thing_sym _:thing
+                    !mask:pass:lambda: pass: : :,:thing_sym :,:thing
                         print: "Hi!"  # Builtin symbol.
                         greet: "World!"  # Local symbol.
-                        __:map:  # Splice
+                        :,@:map:  # Splice
                             lambda: pass:call
                                 !mask:pass:  # Nested !mask.
-                                    _:operator..getitem: call 0
-                                    _:thing_sym
-                                    __:operator..getitem: call slice: 1 None
+                                    :,:operator..getitem: call 0
+                                    :,:thing_sym
+                                    :,@:operator..getitem: call slice: 1 None
                             calls
-                        _:thing_sym
+                        :,:thing_sym
                 : :*
                 quote:pass: spam foo
                     frobnicate: 7 24
@@ -40,13 +40,13 @@ hissp.basic.._macro_.deftype: TestNative pass: TestCase
             hebi.bootstrap..if_:
                 : :* quote:pass:
                     ('a'<'b')
-                    pass:
+                    :then:
                         print: "less"
-                    elif: ('a'>'b')
+                    :elif: ('a'>'b')
                         print: "more"
-                    elif: ('a'=='b')
+                    :elif: ('a'=='b')
                         print: "equal"
-                    else:
+                    :else:
                         print: "nan"
             quote:hebi.bootstrap.._if_:
                 ('a'<'b')
