@@ -8,6 +8,52 @@ from hissp.compiler import NS
 from hebi.parser import QUALSYMBOL
 
 
+def _and_(expr, *thunks):
+    result = expr
+    for thunk in thunks:
+        if not result:
+            break
+        result = thunk()
+    return result
+
+
+def and_(*args):
+    if args:
+        if len(args) == 1:
+            return args[0]
+        return ('hebi.bootstrap.._and_', args[0], *(
+            ('lambda',(),arg) for arg in args[1:]
+        ))
+    return True
+
+
+def _or_(expr, *thunks):
+    result = expr
+    for thunk in thunks:
+        if result:
+            break
+        result = thunk()
+    return result
+
+
+def or_(*args):
+    if args:
+        if len(args) == 1:
+            return args[0]
+        return ('hebi.bootstrap.._or_', args[0], *(
+            ('lambda',(),arg) for arg in args[1:]
+        ))
+    return ()
+
+
+def _not_(b):
+    return True if b else ()
+
+
+def not_(expr):
+    return ('hebi.bootstrap.._not_', expr)
+
+
 def def_(name, *body):
     """
     Assigns a global value or function in the current module.
@@ -44,10 +90,12 @@ def def_(name, *body):
         )
     raise SyntaxError
 
+
 def _decorate(decorators, function):
     for decorator in reversed(decorators):
         function = decorator, function
     return function
+
 
 def _is_str(s):
     if type(s) is str:
@@ -302,6 +350,7 @@ def mask(form):
         return 'quote', _qualify(form)
     return form
 
+
 def _mask(forms):
     for form in forms:
         case = type(form)
@@ -317,6 +366,7 @@ def _mask(forms):
         else:
             yield ':?', form
 
+
 def _qualify(symbol):
     if symbol.startswith('('):
         return symbol
@@ -330,6 +380,7 @@ def _qualify(symbol):
             return f"{qualname}.._macro_.{symbol}"
         return f"{qualname}..{symbol}"
     return symbol
+
 
 def begin(*args):
     return ('lambda', (), *args)
