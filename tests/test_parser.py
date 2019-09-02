@@ -229,8 +229,34 @@ if
     ('hebi.basic.._macro_.spam', 'eggs', 'hebi.basic.._macro_.quux'),
     'hebi.basic.._macro_.if_',
     'hebi.basic.._macro_.if_',
-]
+],
 
+'''
+!mask:pass:lambda: :: :,:thing_sym :,:thing
+    print: "Hi!"  # Builtin symbol.
+    greet: "World!"  # Local symbol.
+    :,@:map:  # Splice
+        lambda: pass:call
+            !mask:pass:  # Nested !mask.
+                :,:operator..getitem: call 0
+                :,:thing_sym
+                :,@:operator..getitem: call slice: 1 None
+        calls
+    :,:thing_sym
+''':[
+('hebi.basic.._macro_.mask',
+   (('lambda', (':', (':,', 'thing_sym'), (':,', 'thing')),
+     ('print', '("Hi!")'),
+     ('greet', '("World!")'),
+     (':,@', ('map',
+       ('lambda', ('call',),
+        ('hebi.basic.._macro_.mask',
+         ((':,', ('operator..getitem', 'call', 0)),
+          (':,', 'thing_sym'),
+          (':,@', ('operator..getitem', 'call', ('slice', 1, 'None')))))),
+       'calls')),
+     (':,', 'thing_sym')),))
+],
 }
 
 class TestParser(TestCase):
