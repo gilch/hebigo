@@ -3,13 +3,26 @@ Native tests in the Hebi-go.
 """
 
 from: unittest :import TestCase
+
+from: hypothesis :import given
+from: hypothesis :import strategies :as st
+# TODO: why isn't the below version working?
+# import: hypothesis.strategies :as st
+
+from: hebi.bootstrap :import function
+
+print: st
+
+hissp.basic.._macro_.requirexH_as:
+    hissp.basic.._macro_.deftype deftype
+
 print: TestCase
 
 def: greet: name
     print: "Hello," name
 
-hissp.basic.._macro_.deftype: TestNative pass: TestCase
-    test_mask lambda: pass: self
+deftype: TestNative pass:TestCase
+    test_mask lambda: self:
         self.assertEqual:
             pass:  # Example based on cascade macro.
                 lambda: pass: thing thing_sym : :* calls
@@ -35,7 +48,7 @@ hissp.basic.._macro_.deftype: TestNative pass: TestCase
                 reticulate: foo spline
                 foo
 
-    test_elif lambda: pass: self
+    test_elif lambda: self:
         self.assertEqual:
             hebi.bootstrap..if_:
                 : :* quote:pass:
@@ -64,13 +77,100 @@ hissp.basic.._macro_.deftype: TestNative pass: TestCase
                 lambda: pass:
                     print: "nan"
 
-    test_fail lambda: pass: self
-        self.fail:
+deftype: TestAnd pass:TestCase
+    test_null lambda: self:
+        self.assertIs:
+            and:
+            True
+
+    test_one pass:
+        given: st.from_type: type
+        function: quote:test_one
+            lambda: self: x
+                self.assertIs:
+                    and: x
+                    x
+
+    test_two pass:
+        given:
+            st.from_type: type
+            st.from_type: type
+        function: quote:test_two
+            lambda: self: x y
+                self.assertIs:
+                    and: x y
+                    (x and y)
+
+    test_shortcut lambda: self:
+        and: 0 (0/0)
+        and: 1 0 (0/0)
+        and: 0 (0/0) (0/0)
+
+    test_three pass:
+        given:
+            st.from_type: type
+            st.from_type: type
+            st.from_type: type
+        function: quote:test_three
+            lambda: self: x y z
+                self.assertIs:
+                    and: x y z
+                    (x and y and z)
+
+
+deftype: TestOr pass:TestCase
+    test_null lambda: self:
+        self.assertEqual:
+            or:
+            ()
+
+    test_one pass:
+        given: st.from_type: type
+        function: quote:test_one
+            lambda: self: x
+                self.assertIs:
+                    or: x
+                    x
+
+    test_two pass:
+        given:
+            st.from_type: type
+            st.from_type: type
+        function: quote:test_two
+            lambda: self: x y
+                self.assertIs:
+                    or: x y
+                    (x or y)
+
+    test_shortcut lambda: self:
+        or: 1 (0/0)
+        or: 0 1 (0/0)
+        or: 1 (0/0) (0/0)
+
+    test_three pass:
+        given:
+            st.from_type: type
+            st.from_type: type
+            st.from_type: type
+        function: quote:test_three
+            lambda: self: x y z
+                self.assertIs:
+                    or: x y z
+                    (x or y or z)
+
 
 # TODO: implement class:
 # class: TestNative: TestCase
 #     def: test_fail: self
 #         self.fail:
 
+#def: __package__ "tests.native_hebi_tests"
+
 import: unittest
-(unittest.main() if __name__ == "__main__" else None)
+
+if: (__name__ == "__main__")
+    :then:
+        # print: __package__
+        # from: . :import recompile
+        .main: unittest
+        # recompile:
