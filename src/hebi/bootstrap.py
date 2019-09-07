@@ -25,7 +25,7 @@ def and_(*args):
     if args:
         if len(args) == 1:
             return args[0]
-        return ('_and_', args[0], *(
+        return (BOOTSTRAP + '_and_', args[0], *(
             _thunk(arg) for arg in args[1:]
         ))
     return True
@@ -415,3 +415,71 @@ def assert_(b, *message):
     if message:
         return BOOTSTRAP + '_assert_', b
     return BOOTSTRAP + '_assert_message', b, _thunk(*message)
+
+
+def flatten_tuples(expr):
+    for e in expr:
+        if type(e) is tuple:
+            yield from flatten_tuples(e)
+        else:
+            yield e
+
+
+def _unpack(target, value):
+    if type(target) is tuple and target and target[0] == ':,':
+            yield from _unpack_iterable(target, iter(value))
+    elif target == '_': pass
+    else:
+        yield value
+
+
+def _unpack_iterable(target, value):
+    itarget = iter(target)
+    head = next(itarget)
+    assert head == ':,'
+    for t in itarget:
+        if t == ':list':
+            yield from _unpack(next(itarget), list(value))
+        elif t == ':iter':
+            yield from _unpack(next(itarget), value)
+        else:
+            yield from _unpack(t, next(value))
+
+def let(target, value, *body):
+    parameters = tuple(
+        p for p in flatten_tuples(target)
+        if type(p) is str and not p.startswith('(') and not p.startswith(':') and p != '_'
+    )
+    return (
+        ('lambda',parameters,*body),
+        ':', ':*',
+        (BOOTSTRAP + '_unpack', ('quote',target), value),
+    )
+
+
+# def _loop(f):
+#     again = False
+#
+#     def recur(*args, **kwargs):
+#         nonlocal again
+#         again = True
+#         # The recursion thunk.
+#         return lambda: f(recur, *args, **kwargs)
+#
+#     @wraps(f)
+#     def wrapper(*args, **kwargs):
+#         nonlocal again
+#         res = f(recur, *args, **kwargs)
+#         while again:
+#             again = False
+#             res = res()  # when recur is called it must be returned!
+#         return res
+#
+#     return wrapper
+#
+# def loop():
+#     """
+#     !loop: :let:
+#         :recur:
+#     """
+#     pass

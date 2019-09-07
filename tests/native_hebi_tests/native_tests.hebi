@@ -24,6 +24,12 @@ def: greet: name
 deftype: TestNative pass:TestCase
     test_mask lambda: self:
         self.assertEqual:
+            quote:pass:lambda: pass: : foo spam
+                builtins..print: "Hi!"
+                tests.native_hebi_tests.native_tests..greet: "World!"
+                frobnicate: foo 7 24
+                reticulate: foo spline
+                foo
             pass:  # Example based on cascade macro.
                 lambda: pass: thing thing_sym : :* calls
                     !mask:pass:lambda: pass: : :,:thing_sym :,:thing
@@ -41,26 +47,8 @@ deftype: TestNative pass:TestCase
                 quote:pass: spam foo
                     frobnicate: 7 24
                     reticulate: spline
-            quote:pass:lambda: pass: : foo spam
-                builtins..print: "Hi!"
-                tests.native_hebi_tests.native_tests..greet: "World!"
-                frobnicate: foo 7 24
-                reticulate: foo spline
-                foo
-
     test_elif lambda: self:
         self.assertEqual:
-            hebi.bootstrap..if_:
-                : :* quote:pass:
-                    ('a'<'b')
-                    :then:
-                        print: "less"
-                    :elif: ('a'>'b')
-                        print: "more"
-                    :elif: ('a'=='b')
-                        print: "equal"
-                    :else:
-                        print: "nan"
             quote:hebi.bootstrap.._if_:
                 ('a'<'b')
                 lambda: pass:
@@ -76,21 +64,30 @@ deftype: TestNative pass:TestCase
                 : else_
                 lambda: pass:
                     print: "nan"
+            hebi.bootstrap..if_:
+                : :* quote:pass:
+                    ('a'<'b')
+                    :then:
+                        print: "less"
+                    :elif: ('a'>'b')
+                        print: "more"
+                    :elif: ('a'=='b')
+                        print: "equal"
+                    :else:
+                        print: "nan"
 
 deftype: TestAnd pass:TestCase
     test_null lambda: self:
         self.assertIs:
-            and:
             True
-
+            and:
     test_one pass:
         given: st.from_type: type
         function: quote:test_one
             lambda: self: x
                 self.assertIs:
-                    and: x
                     x
-
+                    and: x
     test_two pass:
         given:
             st.from_type: type
@@ -98,14 +95,12 @@ deftype: TestAnd pass:TestCase
         function: quote:test_two
             lambda: self: x y
                 self.assertIs:
-                    and: x y
                     (x and y)
-
+                    and: x y
     test_shortcut lambda: self:
         and: 0 (0/0)
         and: 1 0 (0/0)
         and: 0 (0/0) (0/0)
-
     test_three pass:
         given:
             st.from_type: type
@@ -114,24 +109,21 @@ deftype: TestAnd pass:TestCase
         function: quote:test_three
             lambda: self: x y z
                 self.assertIs:
-                    and: x y z
                     (x and y and z)
-
+                    and: x y z
 
 deftype: TestOr pass:TestCase
     test_null lambda: self:
         self.assertEqual:
-            or:
             ()
-
+            or:
     test_one pass:
         given: st.from_type: type
         function: quote:test_one
             lambda: self: x
                 self.assertIs:
-                    or: x
                     x
-
+                    or: x
     test_two pass:
         given:
             st.from_type: type
@@ -139,14 +131,12 @@ deftype: TestOr pass:TestCase
         function: quote:test_two
             lambda: self: x y
                 self.assertIs:
-                    or: x y
                     (x or y)
-
+                    or: x y
     test_shortcut lambda: self:
         or: 1 (0/0)
         or: 0 1 (0/0)
         or: 1 (0/0) (0/0)
-
     test_three pass:
         given:
             st.from_type: type
@@ -155,10 +145,54 @@ deftype: TestOr pass:TestCase
         function: quote:test_three
             lambda: self: x y z
                 self.assertIs:
-                    or: x y z
                     (x or y or z)
+                    or: x y z
 
+deftype: TestLet pass:TestCase
+    test_1 lambda: self:
+        self.assertEqual:
+            42
+            !let: a (40 + 2)
+                a
+    test_2 lambda: self:
+        self.assertEqual:
+            24
+            !let:
+                :,: a b
+                [20, 4]
+                (a + b)
+    test_nested lambda: self:
+        self.assertEqual:
+            [-5, -50]
+            !let:
+                :,: :,: x1 y1
+                    :,: x2 y2
+                [[1, 10],
+                 [6, 60]]
+                [x1 - x2, y1 - y2]
+    test_ignored lambda: self:
+        self.assertEqual:
+            [1, 4, 5]
+            !let:
+                :,: a _ _ d e
+                [1, 2, 3, 4, 5]
+                [a, d, e]
+    test_list lambda: self:
+        self.assertEqual:
+            [1, 2, [3, 4, 5]]
+            !let:
+                :,: a b :list c
+                [1, 2, 3, 4, 5]
+                [a, b, c]
 
+# !let: :.: :syms: a b
+#     !let: ns types..SimpleNamespace:
+#         !attach: ns : a 20  b 4
+#         (ns.a + ns.b)
+# class: type ns
+#     a 20
+#     b (ns.a + ns.a)
+#     type:
 # TODO: implement class:
 # class: TestNative: TestCase
 #     def: test_fail: self

@@ -11,4 +11,5 @@ from ..bootstrap import (
     not_,
     with_,
     assert_,
+    let,
 )
