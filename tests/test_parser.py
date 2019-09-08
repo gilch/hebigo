@@ -257,6 +257,16 @@ if
        'calls')),
      (':,', 'thing_sym')),))
 ],
+
+'''
+:=: :strs: a b c
+    :default: a ('a'+'b')
+''': [
+(':=',
+ (':strs', 'a', 'b', 'c'),
+ (':default', 'a', "(('a'+'b'))"),
+ )
+],
 }
 
 class TestParser(TestCase):
