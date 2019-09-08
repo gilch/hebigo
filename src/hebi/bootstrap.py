@@ -411,23 +411,42 @@ def _assert_(b):
 def _assert_message(b, thunk):
     assert b, thunk()
 
+
 def assert_(b, *message):
     if message:
         return BOOTSTRAP + '_assert_', b
     return BOOTSTRAP + '_assert_message', b, _thunk(*message)
 
 
-def flatten_tuples(expr):
+def _flatten_tuples(expr):
     for e in expr:
-        if type(e) is tuple:
-            yield from flatten_tuples(e)
-        else:
+        if type(e) is tuple and e:
+            if e[0] == ':=':
+                yield from _flatten_mapping(iter(e))
+            else:
+                yield from _flatten_tuples(e)
+        elif (type(e) is str
+              and e != '_'
+              and not e.startswith('(')
+              and not e.startswith(':')
+        ):
             yield e
 
 
+def _flatten_mapping(expr):
+    head = next(expr)
+    assert head == ':='
+    for e in expr:
+        yield e
+        next(expr)
+
+
 def _unpack(target, value):
-    if type(target) is tuple and target and target[0] == ':,':
+    if type(target) is tuple and target:
+        if target[0] == ':,':
             yield from _unpack_iterable(target, iter(value))
+        if target[0] == ':=':
+            yield from _unpack_mapping(target, value)
     elif target == '_': pass
     else:
         yield value
@@ -445,17 +464,42 @@ def _unpack_iterable(target, value):
         else:
             yield from _unpack(t, next(value))
 
-def let(target, value, *body):
-    parameters = tuple(
-        p for p in flatten_tuples(target)
-        if type(p) is str and not p.startswith('(') and not p.startswith(':') and p != '_'
-    )
-    return (
-        ('lambda',parameters,*body),
-        ':', ':*',
-        (BOOTSTRAP + '_unpack', ('quote',target), value),
-    )
 
+def _unpack_mapping(target, value):
+    itarget = iter(target)
+    head = next(itarget)
+    assert head == ':='
+    for t in itarget:
+        yield from _unpack(t, value[next(itarget)])
+
+
+def _quote_tuple(target):
+    head = next(target)
+    yield 'quote', head
+    for t in target:
+        if type(t) is tuple:
+            yield (BOOTSTRAP + 'entuple', *_quote_tuple(iter(t)))
+        else:
+            yield 'quote', t
+        if head == ':=':
+            yield next(target)
+
+
+def let(target, value, *body):
+    if type(target) is tuple:
+        parameters = tuple(_flatten_tuples(target))
+        return (
+            ('lambda', parameters, *body),
+            ':', ':*',
+            (BOOTSTRAP + '_unpack',
+             (BOOTSTRAP + 'entuple', *_quote_tuple(iter(target))),
+             value,),
+        )
+    return ('lambda',(target,),*body,), value,
+
+
+def entuple(*xs):
+    return xs
 
 # def _loop(f):
 #     again = False
