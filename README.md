@@ -74,6 +74,55 @@ foo(a, b)
 (lambda *a: a)(1, 2, 3)
 ```
 ***
+These indentation rules were designed to resemble Python and make editing easier with a basic editor than for s-expressions.
+As a matter of style, arguments should be passed in one of three forms, which should not be mixed for function calls.
+```
+linear: a b c d
+linear_block:
+    a b c d
+block:
+    a
+    b
+    c
+    d
+# What NOT to do, although it compiles fine.
+bad_mix: a
+   b c
+   d
+```
+compare that to the same layout for Python invocations.
+```
+linear(a, b, c, d)
+linear_block(
+    a, b, c, d
+)
+block(
+    a,
+    b,
+    c,
+    d,
+)
+# What NOT to do.
+bad_mix(a,
+    b, c
+    d
+)  # PEP 8 that. Please.
+```
+You should group arguments using whitespace when it makes sense to do so.
+Usually after the `:`.
+```
+linear: x : a b  c d
+linear_block:
+    x : a b  c d
+block:
+    x
+    :
+    a b
+    c d
+```
+Macro invocations are not exactly bound by these rules,
+but may still have documented preferred layouts.
+***
 Hebigo does not munge symbols like Lissp does.
 Qualified symbols (like ``builtins..print``) are allowed,
 but not in bracketed expressions.
@@ -91,6 +140,8 @@ They would not be the same if `print` were a macro.
 Control words may also be used as hotwords.
 This makes no sense at the top level (because strings are not callable), but macros do use them to group arguments.
 
-Hotword expressions may contain bracketed expressions, but not the reverse, since bracketed expressions must be valid Python.
+Hotword expressions may contain bracketed expressions, but not the reverse, since bracketed expressions must be valid Python,
+just like how the statements that the hotword expressions replace may contain expressions,
+but Python expressions may not contain Python statements.
 
 And finally, the `!` is an abbreviation for `hebi.basic.._macro_.`. Hebigo has no other "reader macros".
