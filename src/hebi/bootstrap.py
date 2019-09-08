@@ -55,7 +55,7 @@ def _not_(b):
 
 
 def not_(expr):
-    return (BOOTSTRAP + '_not_', expr)
+    return BOOTSTRAP + '_not_', expr
 
 
 def def_(name, *body):
@@ -444,7 +444,7 @@ def _flatten_mapping(expr):
 def _unpack(target, value):
     if type(target) is tuple and target:
         if target[0] == ':,':
-            yield from _unpack_iterable(target, iter(value))
+            yield from _unpack_iterable(target, iter(value), value)
         if target[0] == ':=':
             yield from _unpack_mapping(target, value)
     elif target == '_': pass
@@ -452,7 +452,7 @@ def _unpack(target, value):
         yield value
 
 
-def _unpack_iterable(target, value):
+def _unpack_iterable(target, value, whole):
     itarget = iter(target)
     head = next(itarget)
     assert head == ':,'
@@ -461,6 +461,8 @@ def _unpack_iterable(target, value):
             yield from _unpack(next(itarget), list(value))
         elif t == ':iter':
             yield from _unpack(next(itarget), value)
+        elif t == ':as':
+            yield from _unpack(next(itarget), whole)
         else:
             yield from _unpack(t, next(value))
 
@@ -478,11 +480,15 @@ def _quote_tuple(target):
     yield 'quote', head
     for t in target:
         if type(t) is tuple:
-            yield (BOOTSTRAP + 'entuple', *_quote_tuple(iter(t)))
+            yield _quote_target(t)
         else:
             yield 'quote', t
         if head == ':=':
             yield next(target)
+
+
+def _quote_target(target):
+    return (BOOTSTRAP + 'entuple', *_quote_tuple(iter(target)))
 
 
 def let(target, value, *body):
@@ -490,10 +496,7 @@ def let(target, value, *body):
         parameters = tuple(_flatten_tuples(target))
         return (
             ('lambda', parameters, *body),
-            ':', ':*',
-            (BOOTSTRAP + '_unpack',
-             (BOOTSTRAP + 'entuple', *_quote_tuple(iter(target))),
-             value,),
+            ':', ':*', (BOOTSTRAP + '_unpack', _quote_target(target), value,),
         )
     return ('lambda',(target,),*body,), value,
 
