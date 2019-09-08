@@ -437,7 +437,7 @@ def _flatten_mapping(expr):
     head = next(expr)
     assert head == ':='
     for e in expr:
-        yield e
+        yield from _flatten_tuples(e)
         next(expr)
 
 

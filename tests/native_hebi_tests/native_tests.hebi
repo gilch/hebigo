@@ -218,6 +218,38 @@ deftype: TestLet pass:TestCase
                     :,: x2 y2 :as point2
                 [[3, 7], 'xy']
                 [point1, x1, y1, point2, x2, y2]
+    test_nested_mixed lambda: self:
+        self.assertEqual:
+            ['a', 'b', 'ab']
+            !let:
+                :=: :,: a b :as s
+                    1
+                {1:'ab'}
+                [a, b, s]
+        self.assertEqual:
+            [[{1:'ab'}], 'ab']
+            !let:
+                :,: :=: s 1
+                    :as d
+                [{1:'ab'}]
+                [d, s]
+        self.assertEqual:
+            ['a', 'b', [{1:'ab'}], 'ab']
+            !let:
+                :,:
+                    :=: :,: a b :as s
+                        1
+                    :as d
+                [{1:'ab'}]
+                [a, b, d, s]
+        self.assertEqual:
+            'spam'
+            !let:
+                :=: :,: :=: s 2
+                    1
+                {1:[{2:'spam'}]}
+                s
+
 
 
 # !let: :.: :syms: a b
