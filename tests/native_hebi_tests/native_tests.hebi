@@ -218,6 +218,12 @@ deftype: TestLet pass:TestCase
                     :,: x2 y2 :as point2
                 [[3, 7], 'xy']
                 [point1, x1, y1, point2, x2, y2]
+    test_mapping_as lambda: self:
+        self.assertEqual:
+            ['spam', {1:'spam'}]
+            !let: :=: s 1 :as d
+                {1:'spam'}
+                [s, d]
     test_nested_mixed lambda: self:
         self.assertEqual:
             ['a', 'b', 'ab']

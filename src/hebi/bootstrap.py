@@ -473,7 +473,11 @@ def _unpack_mapping(target, value):
     head = next(itarget)
     assert head == ':='
     for t in itarget:
-        yield from _unpack(t, value[next(itarget)])
+        if t == ':as':
+            next(itarget)
+            yield value
+        else:
+            yield from _unpack(t, value[next(itarget)])
 
 
 def _quote_tuple(target):
@@ -482,10 +486,19 @@ def _quote_tuple(target):
     for t in target:
         if type(t) is tuple:
             yield _quote_target(t)
+            if head == ':=':
+                yield next(target)
+        elif head == ':=' and type(t) is str and t.startswith(':'):
+            yield t
+            t = next(target)
+            if type(t) is tuple:
+                yield _quote_target(t)
+            else:
+                yield 'quote', t
         else:
             yield 'quote', t
-        if head == ':=':
-            yield next(target)
+            if head == ':=':
+                yield next(target)
 
 
 def _quote_target(target):
