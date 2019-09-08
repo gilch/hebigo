@@ -263,11 +263,18 @@ deftype: TestLet pass:TestCase
                 [a, b, c]
     test_default lambda: self:
         self.assertEqual:
-            ['a','b','c','d']
-            !let: :=: a 1  b 2  c 3  d 4  :default: a 'a'  b 'X'  c 'c'
+            ['A','b','C','d']
+            !let: :=: a 1  b 2  c 3  d 4  :default: a 'A'  b 'X'  c 'C'
                 {2:'b', 4:'d'}
                 [a,b,c,d]
-    # TODO: test_default_strs
+    test_default_strs lambda: self:
+        self.assertEqual:
+            ['ab', 22, 33]
+            !let:
+                :=: :strs: a b c
+                    :default: a ('a'+'b')
+                {'b':22,'c':33}
+                [a, b, c]
 
 
 

@@ -493,7 +493,10 @@ def _unpack_mapping(target, value):
             yield value
         elif type(t) is tuple and t[0] == ':strs':
             for s in t[1:]:
-                yield value[s]
+                try:
+                    yield value[s]
+                except LookupError:
+                    yield default[s]
         elif type(t) is tuple and t[0] == ':default':
             continue
         else:
