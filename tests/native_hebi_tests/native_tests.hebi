@@ -255,6 +255,12 @@ deftype: TestLet pass:TestCase
                     1
                 {1:[{2:'spam'}]}
                 s
+    test_strs lambda: self:
+        self.assertEqual:
+            [1, 2, 3]
+            !let: :=: :strs: a b c
+                {'a':1, 'b':2, 'c':3}
+                [a, b, c]
 
 
 

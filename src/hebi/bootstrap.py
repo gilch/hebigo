@@ -476,6 +476,9 @@ def _unpack_mapping(target, value):
         if t == ':as':
             next(itarget)
             yield value
+        elif type(t) is tuple and t[0] == ':strs':
+            for s in t[1:]:
+                yield value[s]
         else:
             yield from _unpack(t, value[next(itarget)])
 
@@ -485,9 +488,12 @@ def _quote_tuple(target):
     yield 'quote', head
     for t in target:
         if type(t) is tuple:
-            yield _quote_target(t)
-            if head == ':=':
-                yield next(target)
+            if head == ':=' and t[0] == ':strs':
+                yield 'quote', t
+            else:
+                yield _quote_target(t)
+                if head == ':=':
+                    yield next(target)
         elif head == ':=' and type(t) is str and t.startswith(':'):
             yield t
             t = next(target)
