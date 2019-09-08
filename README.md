@@ -11,7 +11,7 @@ All Python expressions must be "bracketed" somehow to be recognized as such.
 Parentheses always work, but `[]` or `{}` are sufficient.
 Quotation marks also work, even with prefixes, like `b''` or `f""""""`, etc.
 
-However, Hebigo completely replaces Python's *statements* with "hotword expressions" based on Hissp semantics.
+However, Hebigo completely replaces Python's *statements* with "hotword expressions" with Hissp's semantics (and macros).
 
 These resemble Python's statements in form, like
 ```
@@ -76,16 +76,20 @@ foo(a, b)
 ***
 Hebigo does not munge symbols like Lissp does.
 Qualified symbols (like ``builtins..print``) are allowed,
-but not in Python expressions.
+but not in bracketed expressions.
 Also, "control words" are words that start with a `:`.
+These are not allowed in bracketed expressions either
+(although they're just compiled to strings, which are).
 You'll need these for paired arguments, same as Lissp.
 These two expressions are equivalent in Hebigo.
 ```
-print: 1 2 3 : :* 'abc'  sep "/" # Hotword expression.
-(print(1,2,3, *'abc', sep="/"))  # Bracketed expression.
+print: 1 2 3 : :* 'abc'  sep "/"  # Hotword expression.
+(print(1, 2, 3, *'abc', sep="/"))  # Bracketed expression.
 ```
+They would not be the same if `print` were a macro.
+
 Control words may also be used as hotwords.
-This makes not sense at the top level (because strings are not callable), but macros do use them to group arguments.
+This makes no sense at the top level (because strings are not callable), but macros do use them to group arguments.
 
 Hotword expressions may contain bracketed expressions, but not the reverse, since bracketed expressions must be valid Python.
 
