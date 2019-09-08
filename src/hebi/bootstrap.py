@@ -444,7 +444,7 @@ def _flatten_mapping(expr):
 def _unpack(target, value):
     if type(target) is tuple and target:
         if target[0] == ':,':
-            yield from _unpack_iterable(target, iter(value), value)
+            yield from _unpack_iterable(target, value)
         if target[0] == ':=':
             yield from _unpack_mapping(target, value)
     elif target == '_': pass
@@ -452,19 +452,20 @@ def _unpack(target, value):
         yield value
 
 
-def _unpack_iterable(target, value, whole):
+def _unpack_iterable(target, value):
+    ivalue = iter(value)
     itarget = iter(target)
     head = next(itarget)
     assert head == ':,'
     for t in itarget:
         if t == ':list':
-            yield from _unpack(next(itarget), list(value))
+            yield from _unpack(next(itarget), list(ivalue))
         elif t == ':iter':
-            yield from _unpack(next(itarget), value)
+            yield from _unpack(next(itarget), ivalue)
         elif t == ':as':
-            yield from _unpack(next(itarget), whole)
+            yield from _unpack(next(itarget), value)
         else:
-            yield from _unpack(t, next(value))
+            yield from _unpack(t, next(ivalue))
 
 
 def _unpack_mapping(target, value):
