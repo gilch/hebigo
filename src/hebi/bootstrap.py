@@ -419,24 +419,33 @@ def assert_(b, *message):
 
 
 def _flatten_tuples(expr):
-    for e in expr:
-        if type(e) is tuple and e:
-            if e[0] == ':=':
-                yield from _flatten_mapping(iter(e))
-            else:
+    if expr[0] == ':=':
+        yield from _flatten_mapping(iter(expr))
+    else:
+        for e in expr:
+            if type(e) is tuple:
                 yield from _flatten_tuples(e)
-        elif (type(e) is str
-              and e != '_'
-              and not e.startswith('(')
-              and not e.startswith(':')
-        ):
-            yield e
+            elif (type(e) is str
+                  and e != '_'
+                  and not e.startswith('(')
+                  and not e.startswith(':')
+            ):
+                yield e
 
 
 def _flatten_mapping(expr):
     head = next(expr)
     assert head == ':='
     for e in expr:
+        if type(e) is tuple:
+            if e[0] == ':default':
+                continue
+            if e[0] == ':strs':
+                yield from _flatten_tuples(e)
+                continue
+        if e == ':as':
+            yield next(expr)
+            continue
         yield from _flatten_tuples(e)
         next(expr)
 
@@ -472,6 +481,12 @@ def _unpack_mapping(target, value):
     itarget = iter(target)
     head = next(itarget)
     assert head == ':='
+    for t in target:
+        if type(t) is tuple and t[0] == ':default':
+            default = dict(partition(t[1:]))
+            break
+    else:
+        default = {}
     for t in itarget:
         if t == ':as':
             next(itarget)
@@ -479,8 +494,13 @@ def _unpack_mapping(target, value):
         elif type(t) is tuple and t[0] == ':strs':
             for s in t[1:]:
                 yield value[s]
+        elif type(t) is tuple and t[0] == ':default':
+            continue
         else:
-            yield from _unpack(t, value[next(itarget)])
+            try:
+                yield from _unpack(t, value[next(itarget)])
+            except LookupError:
+                yield default[t]
 
 
 def _quote_tuple(target):
@@ -490,11 +510,13 @@ def _quote_tuple(target):
         if type(t) is tuple:
             if head == ':=' and t[0] == ':strs':
                 yield 'quote', t
+            elif head == ':=' and t[0] == ':default':
+                yield _quote_target(t)
             else:
                 yield _quote_target(t)
                 if head == ':=':
                     yield next(target)
-        elif head == ':=' and type(t) is str and t.startswith(':'):
+        elif head in ':=' and type(t) is str and t.startswith(':'):
             yield t
             t = next(target)
             if type(t) is tuple:
@@ -503,7 +525,7 @@ def _quote_tuple(target):
                 yield 'quote', t
         else:
             yield 'quote', t
-            if head == ':=':
+            if head in {':=', ':default'}:
                 yield next(target)
 
 
