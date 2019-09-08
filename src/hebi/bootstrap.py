@@ -7,6 +7,56 @@ from hissp.compiler import NS
 
 from hebi.parser import QUALSYMBOL
 
+BOOTSTRAP = 'hebi.bootstrap..'
+
+def _thunk(*args):
+    return ('lambda', (), *args)
+
+def _and_(expr, *thunks):
+    result = expr
+    for thunk in thunks:
+        if not result:
+            break
+        result = thunk()
+    return result
+
+
+def and_(*args):
+    if args:
+        if len(args) == 1:
+            return args[0]
+        return (BOOTSTRAP + '_and_', args[0], *(
+            _thunk(arg) for arg in args[1:]
+        ))
+    return True
+
+
+def _or_(expr, *thunks):
+    result = expr
+    for thunk in thunks:
+        if result:
+            break
+        result = thunk()
+    return result
+
+
+def or_(*args):
+    if args:
+        if len(args) == 1:
+            return args[0]
+        return (BOOTSTRAP + '_or_', args[0], *(
+            _thunk(arg) for arg in args[1:]
+        ))
+    return ()
+
+
+def _not_(b):
+    return True if b else ()
+
+
+def not_(expr):
+    return BOOTSTRAP + '_not_', expr
+
 
 def def_(name, *body):
     """
@@ -30,7 +80,7 @@ def def_(name, *body):
             name,
             _decorate(
                 decorators,
-                ('hebi.bootstrap..function',
+                (BOOTSTRAP + 'function',
                  ('quote', name,),
                  ('lambda', tuple(args), *body),
                  doc)),
@@ -44,10 +94,12 @@ def def_(name, *body):
         )
     raise SyntaxError
 
+
 def _decorate(decorators, function):
     for decorator in reversed(decorators):
         function = decorator, function
     return function
+
 
 def _is_str(s):
     if type(s) is str:
@@ -78,7 +130,7 @@ def import_(*specs):
             pairs.append([spec.split('.')[0], spec])
         else:
             pairs[-1][0] = next(specs)
-    return (('lambda',(),
+    return (_thunk(
              *(('.__setitem__',
                 ('builtins..globals',),
                 ('quote',k),
@@ -140,7 +192,7 @@ def if_(condition, then, *pairs):
     if pairs and pairs[-1][0] == ':else':
         *pairs, else_ = pairs
         else_ = [
-            ':','else_',('lambda',(),*else_[1:])
+            ':','else_',_thunk(*else_[1:])
         ]
 
     elifs = []
@@ -148,17 +200,17 @@ def if_(condition, then, *pairs):
         if pair[0] != ':elif':
             raise SyntaxError(pair[0])
         elifs.extend([
-            ('lambda',(),pair[1],),
-            ('lambda',(),*pair[2:],)
+            _thunk(pair[1],),
+            _thunk(*pair[2:],)
         ])
 
     if then[0] != ':then':
         raise SyntaxError(then)
 
     return (
-        'hebi.bootstrap.._if_',
+        BOOTSTRAP + '_if_',
         condition,
-        ('lambda',(),)+then[1:],
+        _thunk(*then[1:]),
         *elifs,
         *else_,
     )
@@ -171,11 +223,11 @@ def _raise_():
     raise
 
 
-def _raise_ex_(ex):
+def _raise_ex(ex):
     raise ex
 
 
-def _raise_ex_from_(ex, from_):
+def _raise_ex_from(ex, from_):
     raise ex from from_
 
 
@@ -183,11 +235,11 @@ def raise_(ex=None, key=_sentinel, from_=_sentinel):
     if ex:
         if key is not _sentinel:
             if key == ':from':
-                return ('hebi.bootstrap.._raise_ex_from_', ex, from_,)
+                return (BOOTSTRAP + '_raise_ex_from', ex, from_,)
             else:
                 raise SyntaxError(key)
-        return ('hebi.bootstrap.._raise_ex_', ex)
-    return ('hebi.bootstrap.._raise_')
+        return (BOOTSTRAP + '_raise_ex', ex)
+    return (BOOTSTRAP + '_raise')
 
 
 def partition(iterable, n=2, step=None, fillvalue=_sentinel):
@@ -260,7 +312,6 @@ def try_(expr, *handlers):
         :finally:
             .close: thing
     """
-    thunk = ('lambda',(),) + expr
     else_ = ()
     finally_ = ()
     except_ = []
@@ -276,14 +327,14 @@ def try_(expr, *handlers):
         elif handler[0] == ':else':
             if else_:
                 raise SyntaxError(handler)
-            else_ = ('lambda',(),handler[1:],),
+            else_ = _thunk('lambda',(),handler[1:],),
         elif handler[0] == ':finally':
             if finally_:
                 raise SyntaxError(handler)
-            finally_ = ('lambda',(),handler[1:],),
+            finally_ = _thunk('lambda',(),handler[1:],),
         else:
             raise SyntaxError(handler)
-    return ('hebi.bootstrap.._try_',thunk,*except_,*else_,*finally_,)
+    return (BOOTSTRAP + '_try_', _thunk(*expr), *except_, *else_, *finally_,)
 
 
 def mask(form):
@@ -302,6 +353,7 @@ def mask(form):
         return 'quote', _qualify(form)
     return form
 
+
 def _mask(forms):
     for form in forms:
         case = type(form)
@@ -317,6 +369,7 @@ def _mask(forms):
         else:
             yield ':?', form
 
+
 def _qualify(symbol):
     if symbol.startswith('('):
         return symbol
@@ -331,5 +384,194 @@ def _qualify(symbol):
         return f"{qualname}..{symbol}"
     return symbol
 
+
 def begin(*args):
-    return ('lambda', (), *args)
+    return _thunk(*args)
+
+
+def _with_(guard, body):
+    with guard() as g:
+        return body(g)
+
+
+def with_(guard, *body):
+    """
+    with: foo:bar :as baz
+        frobnicate: baz
+    """
+    if len(body) > 2 and body[1] == ':as':
+        return BOOTSTRAP + '_with_', _thunk(guard), ('lambda',(body[2],),*body[3:]),
+    return BOOTSTRAP + '_with_', _thunk(guard), ('lambda',('xAUTO0_'),*body),
+
+
+def _assert_(b):
+    assert b
+
+
+def _assert_message(b, thunk):
+    assert b, thunk()
+
+
+def assert_(b, *message):
+    if message:
+        return BOOTSTRAP + '_assert_', b
+    return BOOTSTRAP + '_assert_message', b, _thunk(*message)
+
+
+def _flatten_tuples(expr):
+    if expr[0] == ':=':
+        yield from _flatten_mapping(iter(expr))
+    else:
+        for e in expr:
+            if type(e) is tuple:
+                yield from _flatten_tuples(e)
+            elif (type(e) is str
+                  and e != '_'
+                  and not e.startswith('(')
+                  and not e.startswith(':')
+            ):
+                yield e
+
+
+def _flatten_mapping(expr):
+    head = next(expr)
+    assert head == ':='
+    for e in expr:
+        if type(e) is tuple:
+            if e[0] == ':default':
+                continue
+            if e[0] == ':strs':
+                yield from _flatten_tuples(e)
+                continue
+        if e == ':as':
+            yield next(expr)
+            continue
+        yield from _flatten_tuples(e)
+        next(expr)
+
+
+def _unpack(target, value):
+    if type(target) is tuple and target:
+        if target[0] == ':,':
+            yield from _unpack_iterable(target, value)
+        if target[0] == ':=':
+            yield from _unpack_mapping(target, value)
+    elif target == '_': pass
+    else:
+        yield value
+
+
+def _unpack_iterable(target, value):
+    ivalue = iter(value)
+    itarget = iter(target)
+    head = next(itarget)
+    assert head == ':,'
+    for t in itarget:
+        if t == ':list':
+            yield from _unpack(next(itarget), list(ivalue))
+        elif t == ':iter':
+            yield from _unpack(next(itarget), ivalue)
+        elif t == ':as':
+            yield from _unpack(next(itarget), value)
+        else:
+            yield from _unpack(t, next(ivalue))
+
+
+def _unpack_mapping(target, value):
+    itarget = iter(target)
+    head = next(itarget)
+    assert head == ':='
+    for t in target:
+        if type(t) is tuple and t[0] == ':default':
+            default = dict(partition(t[1:]))
+            break
+    else:
+        default = {}
+    for t in itarget:
+        if t == ':as':
+            next(itarget)
+            yield value
+        elif type(t) is tuple and t[0] == ':strs':
+            for s in t[1:]:
+                try:
+                    yield value[s]
+                except LookupError:
+                    yield default[s]
+        elif type(t) is tuple and t[0] == ':default':
+            continue
+        else:
+            try:
+                yield from _unpack(t, value[next(itarget)])
+            except LookupError:
+                yield default[t]
+
+
+def _quote_tuple(target):
+    head = next(target)
+    yield 'quote', head
+    for t in target:
+        if type(t) is tuple:
+            if head == ':=' and t[0] == ':strs':
+                yield 'quote', t
+            elif head == ':=' and t[0] == ':default':
+                yield _quote_target(t)
+            else:
+                yield _quote_target(t)
+                if head == ':=':
+                    yield next(target)
+        elif head in ':=' and type(t) is str and t.startswith(':'):
+            yield t
+            t = next(target)
+            if type(t) is tuple:
+                yield _quote_target(t)
+            else:
+                yield 'quote', t
+        else:
+            yield 'quote', t
+            if head in {':=', ':default'}:
+                yield next(target)
+
+
+def _quote_target(target):
+    return (BOOTSTRAP + 'entuple', *_quote_tuple(iter(target)))
+
+
+def let(target, value, *body):
+    if type(target) is tuple:
+        parameters = tuple(_flatten_tuples(target))
+        return (
+            ('lambda', parameters, *body),
+            ':', ':*', (BOOTSTRAP + '_unpack', _quote_target(target), value,),
+        )
+    return ('lambda',(target,),*body,), value,
+
+
+def entuple(*xs):
+    return xs
+
+# def _loop(f):
+#     again = False
+#
+#     def recur(*args, **kwargs):
+#         nonlocal again
+#         again = True
+#         # The recursion thunk.
+#         return lambda: f(recur, *args, **kwargs)
+#
+#     @wraps(f)
+#     def wrapper(*args, **kwargs):
+#         nonlocal again
+#         res = f(recur, *args, **kwargs)
+#         while again:
+#             again = False
+#             res = res()  # when recur is called it must be returned!
+#         return res
+#
+#     return wrapper
+#
+# def loop():
+#     """
+#     !loop: :let:
+#         :recur:
+#     """
+#     pass

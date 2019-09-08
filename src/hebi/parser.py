@@ -122,8 +122,9 @@ def lex(code):
 
 
 RESERVED_WORDS = frozenset(
-    {'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except',
-     'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'nonlocal', 'not', 'or', 'raise', 'return',
+    {'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def',
+     'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if',
+     'import', 'in', 'is', 'nonlocal', 'not', 'or', 'raise', 'return',
      'try', 'while', 'with', 'yield'})
 
 

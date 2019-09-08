@@ -1,3 +1,6 @@
+print(__package__)
+
 from hebi.parser import transpile
 
-transpile(__package__, "native_tests")
+def recompile():
+    transpile(__package__, "native_tests")
