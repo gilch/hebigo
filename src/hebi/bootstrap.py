@@ -1,6 +1,7 @@
 import ast
 import builtins
 import re
+from functools import wraps
 from itertools import islice, zip_longest, chain
 
 from hissp.compiler import NS
@@ -549,29 +550,34 @@ def let(target, value, *body):
 def entuple(*xs):
     return xs
 
-# def _loop(f):
-#     again = False
-#
-#     def recur(*args, **kwargs):
-#         nonlocal again
-#         again = True
-#         # The recursion thunk.
-#         return lambda: f(recur, *args, **kwargs)
-#
-#     @wraps(f)
-#     def wrapper(*args, **kwargs):
-#         nonlocal again
-#         res = f(recur, *args, **kwargs)
-#         while again:
-#             again = False
-#             res = res()  # when recur is called it must be returned!
-#         return res
-#
-#     return wrapper
-#
-# def loop():
-#     """
-#     !loop: :let:
-#         :recur:
-#     """
-#     pass
+def _loop(f):
+    again = False
+
+    def recur(*args, **kwargs):
+        nonlocal again
+        again = True
+        # The recursion thunk.
+        return lambda: f(recur, *args, **kwargs)
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        nonlocal again
+        res = f(recur, *args, **kwargs)
+        while again:
+            again = False
+            res = res()  # when recur is called it must be returned!
+        return res
+
+    return wrapper
+
+def loop(start, *body):
+    """
+    !loop: recur: xs 'abc'  ys ''
+        if: xs :then: (recur(xs[:-1], ys+xs[-1]))
+            :else: ys
+    """
+    return (
+        BOOTSTRAP + '_loop',
+        ('lambda',(start[0],':',*start[1:],),
+         *body),
+    ),
