@@ -12,4 +12,5 @@ from ..bootstrap import (
     with_,
     assert_,
     let,
+    loop,
 )

@@ -276,7 +276,14 @@ deftype: TestLet pass:TestCase
                 {'b':22,'c':33}
                 [a, b, c]
 
-
+deftype: TestLoop pass:TestCase
+    test_loop lambda: self:
+        self.assertEqual:
+            'cba'
+            !loop: recur: xs 'abc'  ys ''
+                if: xs
+                    :then: (recur(xs[:-1], ys + xs[-1]))
+                    :else: ys
 
 # !let: :.: :syms: a b
 #     !let: ns types..SimpleNamespace:
