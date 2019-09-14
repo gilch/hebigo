@@ -621,6 +621,10 @@ class Continue(LabeledBreak):
     pass
 
 
+def continue_(label=None):
+    return (BOOTSTRAP + 'Continue', label)
+
+
 def _for_(iterable, body, else_=lambda:(), label=None):
     try:
         for e in iterable:
@@ -659,3 +663,8 @@ def for_(*exprs):
         *else_,
         *label,
     )
+
+
+def runtime(form):
+    return ('hebi.basic.._macro_.if_', "(__name__!='<compiler>')",
+            (':then', form))

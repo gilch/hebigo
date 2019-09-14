@@ -343,10 +343,39 @@ deftype: TestLoop pass:TestCase
                  [0, 1],
                  [1, 2],
                  [1, 1]]
-                 ijs
+                ijs
+    test_continue lambda: self:
+        !let: ijs :be []
+            self.assertEqual:
+                ()
+                for: i :in [1,2,3]
+                    for: j :in [1,2,3]
+                        if: (i==j) :then: continue:
+                        ijs.append: [i, j]
+            self.assertEqual:
+                [[1, 2],
+                 [1, 3],
+                 [2, 1],
+                 [2, 3],
+                 [3, 1],
+                 [3, 2]]
+                ijs
+    test_labeled_continue lambda: self:
+        !let: ijs :be []
+            self.assertEqual:
+                ()
+                for: :top i :in [1,2,3]
+                    for: j :in [1,2,3]
+                        if: (i==j) :then: continue: :top
+                        ijs.append: [i, j]
+            self.assertEqual:
+                [[2, 1],
+                 [3, 1],
+                 [3, 2]]
+                ijs
 
 
-# TODO: test continue, for/do/else, !begin, try
+# TODO: test for/do/else, !begin, try
 
 
 # !let: :.: :syms: a b
