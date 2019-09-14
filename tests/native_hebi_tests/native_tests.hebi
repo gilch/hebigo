@@ -293,6 +293,23 @@ deftype: TestLoop pass:TestCase
             self.assertEqual:
                 ['A', 'B', 'C']
                 xs
+    test_for lambda: self:
+        !let: xs []
+            for: c :in 'abc'
+                .append: xs .upper:c
+            self.assertEqual:
+                ['A', 'B', 'C']
+                xs
+    test_for_bind lambda: self:
+        !let: xs []
+            for: :,: c i
+                :in zip: 'abc' [1,2,3]
+                xs.append:(c*i)
+            self.assertEqual:
+                ['a','bb','ccc']
+                xs
+
+
 
 
 # !let: :.: :syms: a b

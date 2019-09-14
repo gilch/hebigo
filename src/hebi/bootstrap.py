@@ -2,7 +2,7 @@ import ast
 import builtins
 import re
 from functools import wraps
-from itertools import islice, zip_longest, chain
+from itertools import islice, zip_longest, chain, takewhile
 
 from hissp.compiler import NS
 
@@ -581,3 +581,69 @@ def loop(start, *body):
         ('lambda',(start[0],':',*start[1:],),
          *body),
     ),
+
+
+class LabeledBreak(BaseException):
+    def handle(self, label=None):
+        """ re-raise self if label doesn't match. """
+        if self.label is None or self.label == label:
+            return
+        else:
+            raise self
+
+    def __init__(self, label=None):
+        self.label = label
+        raise self
+
+
+class LabeledResultBreak(LabeledBreak):
+    def __init__(self, result=None, *results, **label):
+        assert set(label.keys()) <= {'label'}
+        if results:
+            self.result = (result,) + results
+        else:
+            self.result = result
+        LabeledBreak.__init__(self, label.get('label', None))
+
+
+class Break(LabeledResultBreak):
+    pass
+
+
+class Continue(LabeledBreak):
+    pass
+
+
+def _for_(iterable, body, else_=lambda:(), label=None):
+    try:
+        for e in iterable:
+            try:
+                body(e)
+            except Continue as c:
+                c.handle(label)
+    except Break as b:
+        b.handle(label)
+        # skip Else() on Break
+        return b.result
+    return else_()
+
+
+def for_(*exprs):
+    iexprs = iter(exprs)
+    *bindings, = takewhile(lambda a: a != ':in', iexprs)
+    iterable = next(iexprs)
+    *body, = iexprs
+    else_ = ()
+    if body and type(body[-1]) is tuple and body[-1] and body[-1][0] == ':else':
+        else_ = 'else_', body.pop()[1:]
+    if type(bindings[0]) is str:
+        body = (tuple(bindings), *body)
+    else:
+        body = ('xAUTO0_',), ('hebi.basic.._macro_.let', *bindings, 'xAUTO0_', *body),
+    return (
+        BOOTSTRAP + '_for_',
+        iterable,
+        ('lambda', *body),
+        ':',
+        *else_,
+    )
