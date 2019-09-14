@@ -537,9 +537,9 @@ def _quote_target(target):
     return (BOOTSTRAP + 'entuple', *_quote_tuple(iter(target)))
 
 
-def let(target, from_, value, *body):
-    if from_ != ':from':
-        raise SyntaxError('Missing :from in !let.')
+def let(target, be, value, *body):
+    if be != ':be':
+        raise SyntaxError('Missing :be in !let.')
     if type(target) is tuple:
         parameters = tuple(_flatten_tuples(target))
         return (
@@ -599,7 +599,7 @@ class LabeledBreak(BaseException):
 
 
 class LabeledResultBreak(LabeledBreak):
-    def __init__(self, result=None, *results, label):
+    def __init__(self, result=None, *results, label=None):
         if results:
             self.result = (result,) + results
         else:
@@ -611,8 +611,18 @@ class Break(LabeledResultBreak):
     pass
 
 
+def break_(*args):
+    if args and args[0] and args[0].startswith(':'):
+        return (BOOTSTRAP + 'Break', *args[1:], ':', 'label', args[0])
+    return (BOOTSTRAP + 'Break', *args)
+
+
 class Continue(LabeledBreak):
     pass
+
+
+def continue_(label=None):
+    return (BOOTSTRAP + 'Continue', label)
 
 
 def _for_(iterable, body, else_=lambda:(), label=None):
@@ -630,7 +640,11 @@ def _for_(iterable, body, else_=lambda:(), label=None):
 
 
 def for_(*exprs):
+    label = 'label', None,
     iexprs = iter(exprs)
+    if type(exprs[0]) is str and exprs[0].startswith(':'):
+        label = 'label', exprs[0],
+        next(iexprs)
     *bindings, = takewhile(lambda a: a != ':in', iexprs)
     iterable = next(iexprs)
     *body, = iexprs
@@ -640,11 +654,17 @@ def for_(*exprs):
     if type(bindings[0]) is str:
         body = (tuple(bindings), *body)
     else:
-        body = ('xAUTO0_',), ('hebi.basic.._macro_.let', *bindings, ':from', 'xAUTO0_', *body),
+        body = ('xAUTO0_',), ('hebi.basic.._macro_.let', *bindings, ':be', 'xAUTO0_', *body),
     return (
         BOOTSTRAP + '_for_',
         iterable,
         ('lambda', *body),
         ':',
         *else_,
+        *label,
     )
+
+
+def runtime(form):
+    return ('hebi.basic.._macro_.if_', "(__name__!='<compiler>')",
+            (':then', form))
