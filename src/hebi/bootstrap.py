@@ -2,7 +2,7 @@ import ast
 import builtins
 import re
 from functools import wraps
-from itertools import islice, zip_longest, chain
+from itertools import islice, zip_longest, chain, takewhile
 
 from hissp.compiler import NS
 
@@ -316,7 +316,7 @@ def try_(expr, *handlers):
     else_ = ()
     finally_ = ()
     except_ = []
-    for handler in partition(handlers):
+    for handler in handlers:
         if handler[0] == ':except':
             if len(handler) > 3 and handler[2] == ':as':
                 arg = handler[3]
@@ -328,14 +328,14 @@ def try_(expr, *handlers):
         elif handler[0] == ':else':
             if else_:
                 raise SyntaxError(handler)
-            else_ = _thunk('lambda',(),handler[1:],),
+            else_ = 'else_', _thunk(*handler[1:]),
         elif handler[0] == ':finally':
             if finally_:
                 raise SyntaxError(handler)
-            finally_ = _thunk('lambda',(),handler[1:],),
+            finally_ = 'finally', _thunk(*handler[1:]),
         else:
             raise SyntaxError(handler)
-    return (BOOTSTRAP + '_try_', _thunk(*expr), *except_, *else_, *finally_,)
+    return (BOOTSTRAP + '_try_', _thunk(expr), *except_, ':', *else_, *finally_,)
 
 
 def mask(form):
@@ -537,7 +537,9 @@ def _quote_target(target):
     return (BOOTSTRAP + 'entuple', *_quote_tuple(iter(target)))
 
 
-def let(target, value, *body):
+def let(target, from_, value, *body):
+    if from_ != ':from':
+        raise SyntaxError('Missing :from in !let.')
     if type(target) is tuple:
         parameters = tuple(_flatten_tuples(target))
         return (
@@ -573,7 +575,7 @@ def _loop(f):
 def loop(start, *body):
     """
     !loop: recur: xs 'abc'  ys ''
-        if: xs :then: (recur(xs[:-1], ys+xs[-1]))
+        if: xs :then: recur(xs[:-1], ys+xs[-1])
             :else: ys
     """
     return (
@@ -581,3 +583,68 @@ def loop(start, *body):
         ('lambda',(start[0],':',*start[1:],),
          *body),
     ),
+
+
+class LabeledBreak(BaseException):
+    def handle(self, label=None):
+        """ re-raise self if label doesn't match. """
+        if self.label is None or self.label == label:
+            return
+        else:
+            raise self
+
+    def __init__(self, label=None):
+        self.label = label
+        raise self
+
+
+class LabeledResultBreak(LabeledBreak):
+    def __init__(self, result=None, *results, label):
+        if results:
+            self.result = (result,) + results
+        else:
+            self.result = result
+        LabeledBreak.__init__(self, label)
+
+
+class Break(LabeledResultBreak):
+    pass
+
+
+class Continue(LabeledBreak):
+    pass
+
+
+def _for_(iterable, body, else_=lambda:(), label=None):
+    try:
+        for e in iterable:
+            try:
+                body(e)
+            except Continue as c:
+                c.handle(label)
+    except Break as b:
+        b.handle(label)
+        # skip Else() on Break
+        return b.result
+    return else_()
+
+
+def for_(*exprs):
+    iexprs = iter(exprs)
+    *bindings, = takewhile(lambda a: a != ':in', iexprs)
+    iterable = next(iexprs)
+    *body, = iexprs
+    else_ = ()
+    if body and type(body[-1]) is tuple and body[-1] and body[-1][0] == ':else':
+        else_ = 'else_', body.pop()[1:]
+    if type(bindings[0]) is str:
+        body = (tuple(bindings), *body)
+    else:
+        body = ('xAUTO0_',), ('hebi.basic.._macro_.let', *bindings, ':from', 'xAUTO0_', *body),
+    return (
+        BOOTSTRAP + '_for_',
+        iterable,
+        ('lambda', *body),
+        ':',
+        *else_,
+    )
