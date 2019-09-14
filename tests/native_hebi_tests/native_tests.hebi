@@ -315,8 +315,38 @@ deftype: TestLoop pass:TestCase
             self.assertEqual:
                 ['a','bb','ccc']
                 xs
+    test_break lambda: self:
+        !let: cs :from iter:'abcdefg'
+            self.assertEqual:
+                'c'
+                for: c :in cs
+                    if: (c=='c')
+                        :then: break: c
+            self.assertEqual:
+                ['d', 'e', 'f', 'g']
+                list:cs
+        self.assertEqual:
+            None
+            for: c :in 'abc'
+                if: (c=='c')
+                    :then: break:
+    test_labeled_break lambda: self:
+        !let: ijs :from []
+            self.assertEqual:
+                1
+                for: :top i :in [0,1,2,3]
+                    for: j :in [2,1]
+                        ijs.append: [i, j]
+                        if: (i==j) :then: break: :top i
+            self.assertEqual:
+                [[0, 2],
+                 [0, 1],
+                 [1, 2],
+                 [1, 1]]
+                 ijs
 
-# TODO: test break, continue, for/do/else, label, labeled result, !begin, try
+
+# TODO: test continue, for/do/else, !begin, try
 
 
 # !let: :.: :syms: a b

@@ -599,7 +599,7 @@ class LabeledBreak(BaseException):
 
 
 class LabeledResultBreak(LabeledBreak):
-    def __init__(self, result=None, *results, label):
+    def __init__(self, result=None, *results, label=None):
         if results:
             self.result = (result,) + results
         else:
@@ -609,6 +609,12 @@ class LabeledResultBreak(LabeledBreak):
 
 class Break(LabeledResultBreak):
     pass
+
+
+def break_(*args):
+    if args and args[0] and args[0].startswith(':'):
+        return (BOOTSTRAP + 'Break', *args[1:], ':', 'label', args[0])
+    return (BOOTSTRAP + 'Break', *args)
 
 
 class Continue(LabeledBreak):
@@ -630,7 +636,11 @@ def _for_(iterable, body, else_=lambda:(), label=None):
 
 
 def for_(*exprs):
+    label = 'label', None,
     iexprs = iter(exprs)
+    if type(exprs[0]) is str and exprs[0].startswith(':'):
+        label = 'label', exprs[0],
+        next(iexprs)
     *bindings, = takewhile(lambda a: a != ':in', iexprs)
     iterable = next(iexprs)
     *body, = iexprs
@@ -647,4 +657,5 @@ def for_(*exprs):
         ('lambda', *body),
         ':',
         *else_,
+        *label,
     )
