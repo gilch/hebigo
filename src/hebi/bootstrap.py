@@ -599,13 +599,12 @@ class LabeledBreak(BaseException):
 
 
 class LabeledResultBreak(LabeledBreak):
-    def __init__(self, result=None, *results, **label):
-        assert set(label.keys()) <= {'label'}
+    def __init__(self, result=None, *results, label):
         if results:
             self.result = (result,) + results
         else:
             self.result = result
-        LabeledBreak.__init__(self, label.get('label', None))
+        LabeledBreak.__init__(self, label)
 
 
 class Break(LabeledResultBreak):
