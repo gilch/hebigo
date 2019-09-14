@@ -537,7 +537,9 @@ def _quote_target(target):
     return (BOOTSTRAP + 'entuple', *_quote_tuple(iter(target)))
 
 
-def let(target, value, *body):
+def let(target, from_, value, *body):
+    if from_ != ':from':
+        raise SyntaxError('Missing :from in !let.')
     if type(target) is tuple:
         parameters = tuple(_flatten_tuples(target))
         return (
@@ -639,7 +641,7 @@ def for_(*exprs):
     if type(bindings[0]) is str:
         body = (tuple(bindings), *body)
     else:
-        body = ('xAUTO0_',), ('hebi.basic.._macro_.let', *bindings, 'xAUTO0_', *body),
+        body = ('xAUTO0_',), ('hebi.basic.._macro_.let', *bindings, ':from', 'xAUTO0_', *body),
     return (
         BOOTSTRAP + '_for_',
         iterable,
