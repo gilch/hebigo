@@ -152,14 +152,14 @@ deftype: TestLet pass:TestCase
     test_single lambda: self:
         self.assertEqual:
             42
-            !let: a :from (40 + 2)
+            !let: a :be (40 + 2)
                 a
     test_2 lambda: self:
         self.assertEqual:
             24
             !let:
                 :,: a b
-                :from [20, 4]
+                :be [20, 4]
                 (a + b)
     test_nested lambda: self:
         self.assertEqual:
@@ -167,7 +167,7 @@ deftype: TestLet pass:TestCase
             !let:
                 :,: :,: x1 y1
                     :,: x2 y2
-                :from [[1, 10],
+                :be [[1, 10],
                        [6, 60]]
                 [x1 - x2, y1 - y2]
     test_ignored lambda: self:
@@ -175,27 +175,27 @@ deftype: TestLet pass:TestCase
             [1, 4, 5]
             !let:
                 :,: a _ _ d e
-                :from [1, 2, 3, 4, 5]
+                :be [1, 2, 3, 4, 5]
                 [a, d, e]
     test_list lambda: self:
         self.assertEqual:
             [1, 2, [3, 4, 5]]
             !let:
                 :,: a b :list c
-                :from [1, 2, 3, 4, 5]
+                :be [1, 2, 3, 4, 5]
                 [a, b, c]
     test_iter lambda: self:
         self.assertEqual:
             ['a', 'c', 'b', 'd', 'e']
             !let:
                 :,: a b :iter c
-                :from 'abcde'
+                :be 'abcde'
                 [a, next(c), b, *c]
     test_mapping lambda: self:
         self.assertEqual:
             ['one', 'bar']
             !let: :=: a 1  b 'foo'
-                :from {1: 'one', 'foo': 'bar'}
+                :be {1: 'one', 'foo': 'bar'}
                 [a, b]
     test_nested_mapping lambda: self:
         self.assertEqual:
@@ -206,7 +206,7 @@ deftype: TestLet pass:TestCase
                     2
                     :=: c 'bar'
                     3
-                :from {1: 'one',
+                :be {1: 'one',
                        2: {'foo': 'spam'},
                        3: {'bar': 'eggs'}}
                 [a, b, c]
@@ -215,7 +215,7 @@ deftype: TestLet pass:TestCase
             [1, 2, 3]
             !let:
                 :,: a b c
-                :from [1, 2, 3, 4, 5]
+                :be [1, 2, 3, 4, 5]
                 [a, b, c]
     test_as lambda: self:
         self.assertEqual:
@@ -223,13 +223,13 @@ deftype: TestLet pass:TestCase
             !let:
                 :,: :,: x1 y1 :as point1
                     :,: x2 y2 :as point2
-                :from [[3, 7], 'xy']
+                :be [[3, 7], 'xy']
                 [point1, x1, y1, point2, x2, y2]
     test_mapping_as lambda: self:
         self.assertEqual:
             ['spam', {1:'spam'}]
             !let: :=: s 1 :as d
-                :from {1:'spam'}
+                :be {1:'spam'}
                 [s, d]
     test_nested_mixed lambda: self:
         self.assertEqual:
@@ -237,14 +237,14 @@ deftype: TestLet pass:TestCase
             !let:
                 :=: :,: a b :as s
                     1
-                :from {1:'ab'}
+                :be {1:'ab'}
                 [a, b, s]
         self.assertEqual:
             [[{1:'ab'}], 'ab']
             !let:
                 :,: :=: s 1
                     :as d
-                :from [{1:'ab'}]
+                :be [{1:'ab'}]
                 [d, s]
         self.assertEqual:
             ['a', 'b', [{1:'ab'}], 'ab']
@@ -253,26 +253,26 @@ deftype: TestLet pass:TestCase
                     :=: :,: a b :as s
                         1
                     :as d
-                :from [{1:'ab'}]
+                :be [{1:'ab'}]
                 [a, b, d, s]
         self.assertEqual:
             'spam'
             !let:
                 :=: :,: :=: s 2
                     1
-                :from {1:[{2:'spam'}]}
+                :be {1:[{2:'spam'}]}
                 s
     test_strs lambda: self:
         self.assertEqual:
             [1, 2, 3]
             !let: :=: :strs: a b c
-                :from {'a':1, 'b':2, 'c':3}
+                :be {'a':1, 'b':2, 'c':3}
                 [a, b, c]
     test_default lambda: self:
         self.assertEqual:
             ['A','b','C','d']
             !let: :=: a 1  b 2  c 3  d 4  :default: a 'A'  b 'X'  c 'C'
-                :from {2:'b', 4:'d'}
+                :be {2:'b', 4:'d'}
                 [a,b,c,d]
     test_default_strs lambda: self:
         self.assertEqual:
@@ -280,7 +280,7 @@ deftype: TestLet pass:TestCase
             !let:
                 :=: :strs: a b c
                     :default: a ('a'+'b')
-                :from {'b':22,'c':33}
+                :be {'b':22,'c':33}
                 [a, b, c]
 
 deftype: TestLoop pass:TestCase
@@ -292,7 +292,7 @@ deftype: TestLoop pass:TestCase
                     :then: (recur(xs[:-1], ys + xs[-1]))
                     :else: ys
     test_try_iter lambda: self:
-        !let: xs :from []
+        !let: xs :be []
             !loop: recur: it iter:'abc'
                 try: .append: xs .upper:next:it
                     :except: StopIteration
@@ -301,14 +301,14 @@ deftype: TestLoop pass:TestCase
                 ['A', 'B', 'C']
                 xs
     test_for lambda: self:
-        !let: xs :from []
+        !let: xs :be []
             for: c :in 'abc'
                 .append: xs .upper:c
             self.assertEqual:
                 ['A', 'B', 'C']
                 xs
     test_for_bind lambda: self:
-        !let: xs :from []
+        !let: xs :be []
             for: :,: c i
                 :in zip: 'abc' [1,2,3]
                 xs.append:(c*i)
@@ -316,7 +316,7 @@ deftype: TestLoop pass:TestCase
                 ['a','bb','ccc']
                 xs
     test_break lambda: self:
-        !let: cs :from iter:'abcdefg'
+        !let: cs :be iter:'abcdefg'
             self.assertEqual:
                 'c'
                 for: c :in cs
@@ -331,7 +331,7 @@ deftype: TestLoop pass:TestCase
                 if: (c=='c')
                     :then: break:
     test_labeled_break lambda: self:
-        !let: ijs :from []
+        !let: ijs :be []
             self.assertEqual:
                 1
                 for: :top i :in [0,1,2,3]
