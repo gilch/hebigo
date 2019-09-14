@@ -13,4 +13,5 @@ from ..bootstrap import (
     assert_,
     let,
     loop,
+    try_,
 )

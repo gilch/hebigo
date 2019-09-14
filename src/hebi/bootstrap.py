@@ -316,7 +316,7 @@ def try_(expr, *handlers):
     else_ = ()
     finally_ = ()
     except_ = []
-    for handler in partition(handlers):
+    for handler in handlers:
         if handler[0] == ':except':
             if len(handler) > 3 and handler[2] == ':as':
                 arg = handler[3]
@@ -328,14 +328,14 @@ def try_(expr, *handlers):
         elif handler[0] == ':else':
             if else_:
                 raise SyntaxError(handler)
-            else_ = _thunk('lambda',(),handler[1:],),
+            else_ = 'else_', _thunk(*handler[1:]),
         elif handler[0] == ':finally':
             if finally_:
                 raise SyntaxError(handler)
-            finally_ = _thunk('lambda',(),handler[1:],),
+            finally_ = 'finally', _thunk(*handler[1:]),
         else:
             raise SyntaxError(handler)
-    return (BOOTSTRAP + '_try_', _thunk(*expr), *except_, *else_, *finally_,)
+    return (BOOTSTRAP + '_try_', _thunk(expr), *except_, ':', *else_, *finally_,)
 
 
 def mask(form):
@@ -573,7 +573,7 @@ def _loop(f):
 def loop(start, *body):
     """
     !loop: recur: xs 'abc'  ys ''
-        if: xs :then: (recur(xs[:-1], ys+xs[-1]))
+        if: xs :then: recur(xs[:-1], ys+xs[-1])
             :else: ys
     """
     return (

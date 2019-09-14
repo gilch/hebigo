@@ -284,6 +284,16 @@ deftype: TestLoop pass:TestCase
                 if: xs
                     :then: (recur(xs[:-1], ys + xs[-1]))
                     :else: ys
+    test_try_iter lambda: self:
+        !let: xs []
+            !loop: recur: it iter:'abc'
+                try: .append: xs .upper:next:it
+                    :except: StopIteration
+                    :else: recur:it
+            self.assertEqual:
+                ['A', 'B', 'C']
+                xs
+
 
 # !let: :.: :syms: a b
 #     !let: ns types..SimpleNamespace:
