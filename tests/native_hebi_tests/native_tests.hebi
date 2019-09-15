@@ -376,12 +376,12 @@ deftype: TestLoop pass:TestCase
     test_for_else lambda: self:
         self.assertEqual:
             'c'
-            for: c :in 'abcdefg':
+            for: c :in 'abcdefg'
                 if: (c=='c') :then: break: c
                 :else: 'z'
         self.assertEqual:
             'z'
-            for: c :in 'abcdefg':
+            for: c :in 'abcdefg'
                 if: (c=='C') :then: break: c
                 :else: 'z'
 

@@ -10,8 +10,10 @@ from hebi.parser import QUALSYMBOL
 
 BOOTSTRAP = 'hebi.bootstrap..'
 
+
 def _thunk(*args):
     return ('lambda', (), *args)
+
 
 def _and_(expr, *thunks):
     result = expr
@@ -236,11 +238,11 @@ def raise_(ex=None, key=_sentinel, from_=_sentinel):
     if ex:
         if key is not _sentinel:
             if key == ':from':
-                return (BOOTSTRAP + '_raise_ex_from', ex, from_,)
+                return BOOTSTRAP + '_raise_ex_from', ex, from_,
             else:
                 raise SyntaxError(key)
-        return (BOOTSTRAP + '_raise_ex', ex)
-    return (BOOTSTRAP + '_raise')
+        return BOOTSTRAP + '_raise_ex', ex
+    return BOOTSTRAP + '_raise'
 
 
 def partition(iterable, n=2, step=None, fillvalue=_sentinel):
@@ -402,7 +404,7 @@ def with_(guard, *body):
     """
     if len(body) > 2 and body[1] == ':as':
         return BOOTSTRAP + '_with_', _thunk(guard), ('lambda',(body[2],),*body[3:]),
-    return BOOTSTRAP + '_with_', _thunk(guard), ('lambda',('xAUTO0_'),*body),
+    return BOOTSTRAP + '_with_', _thunk(guard), ('lambda',('xAUTO0_',),*body),
 
 
 def _assert_(b):
@@ -426,10 +428,11 @@ def _flatten_tuples(expr):
         for e in expr:
             if type(e) is tuple:
                 yield from _flatten_tuples(e)
-            elif (type(e) is str
-                  and e != '_'
-                  and not e.startswith('(')
-                  and not e.startswith(':')
+            elif (
+                type(e) is str
+                and e != '_'
+                and not e.startswith('(')
+                and not e.startswith(':')
             ):
                 yield e
 
@@ -457,7 +460,8 @@ def _unpack(target, value):
             yield from _unpack_iterable(target, value)
         if target[0] == ':=':
             yield from _unpack_mapping(target, value)
-    elif target == '_': pass
+    elif target == '_':
+        pass
     else:
         yield value
 
@@ -572,6 +576,7 @@ def _loop(f):
 
     return wrapper
 
+
 def loop(start, *body):
     """
     !loop: recur: xs 'abc'  ys ''
@@ -622,7 +627,7 @@ class Continue(LabeledBreak):
 
 
 def continue_(label=None):
-    return (BOOTSTRAP + 'Continue', label)
+    return BOOTSTRAP + 'Continue', label
 
 
 def _for_(iterable, body, else_=lambda:(), label=None):
