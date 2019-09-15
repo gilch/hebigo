@@ -93,6 +93,11 @@ def lex(code):
         elif case == 'indent':
             width = len(group)
             if width > indents[-1]:
+                if len(indents) > opens:
+                    ie = IndentationError("New indent in same block.")
+                    ie.text = code[:code.find('\n', token.span()[1])]
+                    ie.lineno = ie.text.count('\n')
+                    raise ie
                 indents.append(width)
             elif width < indents[-1]:
                 while width < indents[-1]:
@@ -198,13 +203,14 @@ def transpile_module(
 
 
 code = '''\
-norf:
-    foo:
-        [1, 2,
-         3, 4]
-         x  # Extra indent.
-    y bar:
-        1
+test_default_strs lambda: self:
+    self.assertEqual:
+        ['ab', 22, 33]
+        !let:
+            :=: :strs: a b c
+                :default: a ('a'+'b')
+            {'b':22,'c':33}
+            [a, b, c]
 '''
 
 for k, v in lex(code):
