@@ -27,11 +27,11 @@ TOKEN = re.compile(r"""(?x)
     [.\w]+  # unary symbol
     |:[^ \r\n"')\]}]*  # unary control word
     ):(?=[^ \r\n]))  # lack of space after ending colon makes it unary
-|(?P<polyadic>(?:
+|(?P<multiary>(?:
     !?  # basic macro?
-    [.\w]+  # polyadic symbol
-    |:[^ \r\n"')\]}]*  # polyadic control word
-    ):(?=[ \r\n]))  # space after ending colon makes in polyadic
+    [.\w]+  # multiary symbol
+    |:[^ \r\n"')\]}]*  # multiary control word
+    ):(?=[ \r\n]))  # space after ending colon makes in multiary
 
 |(?P<controlword>:[^ \r\n"')\]}]*)
 |(?P<symbol>[^ \r\n"')\]}]+)
@@ -102,7 +102,7 @@ def lex(code):
             while opens >= len(indents):
                 opens -= 1
                 yield 'close', 'EQDENT'
-        elif case == 'polyadic':
+        elif case == 'multiary':
             opens += 1
             yield 'open', ':'
             if group != 'pass:':
@@ -198,7 +198,13 @@ def transpile_module(
 
 
 code = '''\
-:,:foo
+norf:
+    foo:
+        [1, 2,
+         3, 4]
+         x  # Extra indent.
+    y bar:
+        1
 '''
 
 for k, v in lex(code):
