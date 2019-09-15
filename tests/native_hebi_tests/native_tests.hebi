@@ -376,18 +376,41 @@ deftype: TestLoop pass:TestCase
     test_for_else lambda: self:
         self.assertEqual:
             'c'
-            for: c :in 'abcdefg':
+            for: c :in 'abcdefg'
                 if: (c=='c') :then: break: c
                 :else: 'z'
         self.assertEqual:
             'z'
-            for: c :in 'abcdefg':
+            for: c :in 'abcdefg'
                 if: (c=='C') :then: break: c
                 :else: 'z'
 
 
+deftype: TestBegin pass:TestCase
+    test_begin lambda: self:
+        !let: xs :be []
+            self.assertEqual:
+                3
+                !begin:
+                    xs.append: 1
+                    xs.append: 2
+                    3
+            self.assertEqual: xs [1, 2]
+    test_begin_empty lambda: self:
+        self.assertEqual:
+            ()
+            !begin:
+    test_begin0 lambda: self:
+        !let: xs :be []
+            self.assertEqual:
+                0
+                !begin0:
+                    0
+                    xs.append: 1
+                    xs.append: 2
+            self.assertEqual: xs [1, 2]
 
-# TODO: test !begin, try
+# TODO: test try
 
 
 # !let: :.: :syms: a b

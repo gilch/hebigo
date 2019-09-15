@@ -6,6 +6,7 @@ from ..bootstrap import (
     raise_,
     mask,
     begin,
+    begin0,
     and_,
     or_,
     not_,
