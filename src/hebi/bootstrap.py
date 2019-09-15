@@ -634,13 +634,17 @@ def _for_(iterable, body, else_=lambda:(), label=None):
                 c.handle(label)
     except Break as b:
         b.handle(label)
-        # skip Else() on Break
+        # skip else_() on Break
         return b.result
     return else_()
 
 
 def for_(*exprs):
     label = 'label', None,
+    else_ = ()
+    if type(exprs[-1]) is tuple and exprs[-1] and exprs[-1][0] == ':else':
+        else_ = 'else_', _thunk(*exprs[-1][1:])
+        exprs = exprs[:-1]
     iexprs = iter(exprs)
     if type(exprs[0]) is str and exprs[0].startswith(':'):
         label = 'label', exprs[0],
@@ -648,7 +652,6 @@ def for_(*exprs):
     *bindings, = takewhile(lambda a: a != ':in', iexprs)
     iterable = next(iexprs)
     *body, = iexprs
-    else_ = ()
     if body and type(body[-1]) is tuple and body[-1] and body[-1][0] == ':else':
         else_ = 'else_', body.pop()[1:]
     if type(bindings[0]) is str:
@@ -665,6 +668,6 @@ def for_(*exprs):
     )
 
 
-def runtime(form):
+def runtime(*forms):
     return ('hebi.basic.._macro_.if_', "(__name__!='<compiler>')",
-            (':then', form))
+            (':then', *forms))
