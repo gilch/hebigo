@@ -388,8 +388,20 @@ def _qualify(symbol):
     return symbol
 
 
-def begin(*args):
-    return _thunk(*args)
+def _begin(*body):
+    return body and body[-1]
+
+
+def begin(*body):
+    return (BOOTSTRAP + '_begin', *body)
+
+
+def _begin0(zero, *body):
+    return zero
+
+
+def begin0(*body):
+    return (BOOTSTRAP + '_begin0', *body)
 
 
 def _with_(guard, body):
