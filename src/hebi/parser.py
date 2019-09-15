@@ -94,7 +94,7 @@ def lex(code):
             width = len(group)
             if width > indents[-1]:
                 if len(indents) > opens:
-                    ie = IndentationError("New indent in same block.")
+                    ie = IndentationError("New indent in same block. (Did you miss a colon?)")
                     ie.text = code[:code.find('\n', token.span()[1])]
                     ie.lineno = ie.text.count('\n')
                     raise ie
