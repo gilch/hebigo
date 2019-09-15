@@ -267,8 +267,41 @@ if
  (':default', 'a', "(('a'+'b'))"),
  )
 ],
+'''
+foo:
+    [1, 2,
+     3, 4]
+    x
+bar: 1
+''': [
+('foo',
+ '([1, 2,\n     3, 4])',
+ 'x'),
+('bar', 1),
+],
 }
 
+BAD_INDENTS = ['''
+# Missing colons.
+test_default_strs lambda self:
+    self.assertEqual:
+        ['ab', 22, 33]
+        !let
+            :=: :strs: a b c
+                :default: a ('a'+'b')
+            {'b':22,'c':33}
+            [a, b, c]
+''',
+'''
+norlf:
+    foo:
+        [1, 2,
+         3, 4]
+         x  # Extra indent.
+    y bar:
+        1
+''',
+]
 class TestParser(TestCase):
     def test_transpile(self):
         import tests.native_hebi_tests
@@ -283,3 +316,9 @@ class TestParser(TestCase):
                 print(parsed)
                 self.assertEqual(parsed, v)
                 print('OK')
+
+    def test_bad_indent(self):
+        for e in BAD_INDENTS:
+            with self.subTest(example=e):
+                with self.assertRaises(IndentationError):
+                    print([*lex(e)])

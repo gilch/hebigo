@@ -27,11 +27,11 @@ TOKEN = re.compile(r"""(?x)
     [.\w]+  # unary symbol
     |:[^ \r\n"')\]}]*  # unary control word
     ):(?=[^ \r\n]))  # lack of space after ending colon makes it unary
-|(?P<polyadic>(?:
+|(?P<multiary>(?:
     !?  # basic macro?
-    [.\w]+  # polyadic symbol
-    |:[^ \r\n"')\]}]*  # polyadic control word
-    ):(?=[ \r\n]))  # space after ending colon makes in polyadic
+    [.\w]+  # multiary symbol
+    |:[^ \r\n"')\]}]*  # multiary control word
+    ):(?=[ \r\n]))  # space after ending colon makes in multiary
 
 |(?P<controlword>:[^ \r\n"')\]}]*)
 |(?P<symbol>[^ \r\n"')\]}]+)
@@ -93,6 +93,11 @@ def lex(code):
         elif case == 'indent':
             width = len(group)
             if width > indents[-1]:
+                if len(indents) > opens:
+                    ie = IndentationError("New indent in same block.")
+                    ie.text = code[:code.find('\n', token.span()[1])]
+                    ie.lineno = ie.text.count('\n')
+                    raise ie
                 indents.append(width)
             elif width < indents[-1]:
                 while width < indents[-1]:
@@ -102,7 +107,7 @@ def lex(code):
             while opens >= len(indents):
                 opens -= 1
                 yield 'close', 'EQDENT'
-        elif case == 'polyadic':
+        elif case == 'multiary':
             opens += 1
             yield 'open', ':'
             if group != 'pass:':
@@ -198,7 +203,14 @@ def transpile_module(
 
 
 code = '''\
-:,:foo
+test_default_strs lambda: self:
+    self.assertEqual:
+        ['ab', 22, 33]
+        !let:
+            :=: :strs: a b c
+                :default: a ('a'+'b')
+            {'b':22,'c':33}
+            [a, b, c]
 '''
 
 for k, v in lex(code):
