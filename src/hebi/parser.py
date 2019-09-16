@@ -29,15 +29,15 @@ TOKEN = re.compile(r"""(?x)
 |(?P<unary>(?:
     !?  # basic macro?
     [.\w]+  # unary symbol
-    |:[^ \r\n"')\]}]*  # unary control word
+    |:[^: \r\n"')\]}]*  # unary control word
     ):(?=[^ \r\n]))  # lack of space after ending colon makes it unary
 |(?P<multiary>(?:
     !?  # basic macro?
     [.\w]+  # multiary symbol
-    |:[^ \r\n"')\]}]*  # multiary control word
+    |:[^: \r\n"')\]}]*  # multiary control word
     ):(?=[ \r\n]))  # space after ending colon makes in multiary
 
-|(?P<controlword>:[^ \r\n"')\]}]*)
+|(?P<controlword>:[^: \r\n"')\]}]*)
 |(?P<symbol>[^ \r\n"')\]}]+)
 |(?P<error>.|\n)
 """)
