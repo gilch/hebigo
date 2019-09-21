@@ -51,6 +51,52 @@ deftype: TestNative pass:TestCase
                 quote:pass: spam foo
                     frobnicate: 7 24
                     reticulate: spline
+    test_simple_double_unquote lambda: self:
+        self.assertEqual:
+            1
+            !let: a :be 1
+                !mask:!mask::,::,:a
+    test_double_unquote lambda: self:
+        self.assertEqual:
+            quote:pass:
+                hebi.bootstrap..entuple: : :? 1  :? 2
+                3
+            !let: a :be 1
+                !mask:pass:
+                    !mask:pass: :,::,:a 2
+                    3
+    test_simple_alternate_double_unquote lambda: self:
+        self.assertEqual:
+            2
+            !let: a :be 2
+                !mask::,:!mask::,:a
+    test_alternate_double_unquote lambda: self:
+        self.assertEqual:
+            quote:pass: 0 pass: 1 2
+            !let: a :be 2
+                !mask:pass:
+                    0
+                    :,:!mask:pass: 1 :,:a
+    test_simple_double_mask_unquote lambda: self:
+        self.assertEqual:
+            quote:builtins..print
+            !let: print :be 3
+                !mask:!mask::,:print
+    test_double_mask_unquote lambda: self:
+        self.assertEqual:
+            quote:pass:
+                0
+                hebi.bootstrap..entuple:
+                    : :? 1
+                    :? 2
+                    :? builtins..print
+            !let: print :be 3
+                !mask:pass:
+                    0
+                    !mask:pass:
+                        1
+                        2
+                        :,:print
     test_elif lambda: self:
         self.assertEqual:
             quote:hebi.bootstrap.._if_:
