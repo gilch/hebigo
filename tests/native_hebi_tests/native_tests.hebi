@@ -433,6 +433,28 @@ deftype: TestLoop pass:TestCase
                 if: (c=='C') :then: break: c
                 :else: 'z'
 
+def: TestDef
+    types..new_class: 'TestDef' (TestCase,) None
+        lambda: pass: xAUTO0_
+            !let: _ns_ :be hebi.bootstrap..attrs: xAUTO0_
+                def: .__module__ operator..getitem: pass:globals '__name__'
+                def: .test_def_ns: self
+                    """ How to emulate local reassignment. """
+                    !let: o :be types..SimpleNamespace:
+                        def: o.foo 2
+                        def: o.foo (o.foo * 3)
+                        self.assertEqual:
+                            6
+                            o.foo
+                def: .test_def_anaphoric_ns: self
+                    !let: _ns_ :be types..SimpleNamespace:
+                        def: .foo 2
+                        def: .foo (_ns_.foo * 3)
+                        self.assertEqual:
+                            6
+                            _ns_.foo
+                _ns_:
+
 def: TestBegin
     types..new_class: 'TestBegin' (TestCase,) None
         lambda: pass: xAUTO0_
@@ -461,6 +483,14 @@ def: TestBegin
                                 xs.append: 1
                                 xs.append: 2
                         self.assertEqual: xs [1, 2]
+                def: .test_def_ns: self
+                    """ How to emulate local reassignment. """
+                    !let: ns :be types..SimpleNamespace:
+                        def: ns.foo 2
+                        def: ns.foo (ns.foo * 3)
+                        self.assertEqual:
+                            6
+                            ns.foo
                 _ns_:
 
 # TODO: test try
