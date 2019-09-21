@@ -126,41 +126,38 @@ deftype: TestNative pass:TestCase
                     :else:
                         print: "nan"
 
-deftype: TestAnd pass:TestCase
-    test_null lambda: self:
-        self.assertIs:
-            True
-            and:
-    test_one pass:
-        given: st.from_type: type
-        function: quote:test_one
-            lambda: self: x
+def: TestAnd
+    type: 'TestAnd' (TestCase,)
+        !let: _ns_ :be hebi.bootstrap..attrs: {}
+            def: :test_null: self
+                self.assertIs:
+                    True
+                    and:
+            def: :test_one: self x
+                :@ given: st.from_type: type
                 self.assertIs:
                     x
                     and: x
-    test_two pass:
-        given:
-            st.from_type: type
-            st.from_type: type
-        function: quote:test_two
-            lambda: self: x y
+            def: :test_two: self x y
+                :@ given:
+                    st.from_type: type
+                    st.from_type: type
                 self.assertIs:
                     (x and y)
                     and: x y
-    test_shortcut lambda: self:
-        and: 0 (0/0)
-        and: 1 0 (0/0)
-        and: 0 (0/0) (0/0)
-    test_three pass:
-        given:
-            st.from_type: type
-            st.from_type: type
-            st.from_type: type
-        function: quote:test_three
-            lambda: self: x y z
+            def: :test_shortcut: self
+                and: 0 (0/0)
+                and: 1 0 (0/0)
+                and: 0 (0/0) (0/0)
+            def: :test_three: self x y z
+                :@ given:
+                    st.from_type: type
+                    st.from_type: type
+                    st.from_type: type
                 self.assertIs:
                     (x and y and z)
                     and: x y z
+            _ns_:
 
 deftype: TestOr pass:TestCase
     test_null lambda: self:
@@ -436,29 +433,32 @@ deftype: TestLoop pass:TestCase
                 :else: 'z'
 
 
-deftype: TestBegin pass:TestCase
-    test_begin lambda: self:
-        !let: xs :be []
-            self.assertEqual:
-                3
-                !begin:
-                    xs.append: 1
-                    xs.append: 2
-                    3
-            self.assertEqual: xs [1, 2]
-    test_begin_empty lambda: self:
-        self.assertEqual:
-            ()
-            !begin:
-    test_begin0 lambda: self:
-        !let: xs :be []
-            self.assertEqual:
-                0
-                !begin0:
-                    0
-                    xs.append: 1
-                    xs.append: 2
-            self.assertEqual: xs [1, 2]
+def: TestBegin
+    type: 'TestBegin' (TestCase,)
+        !let: _ns_ :be hebi.bootstrap..attrs: {}
+            def: :test_begin: self
+                !let: xs :be []
+                    self.assertEqual:
+                        3
+                        !begin:
+                            xs.append: 1
+                            xs.append: 2
+                            3
+                    self.assertEqual: xs [1, 2]
+            def: :test_begin_empty: self
+                self.assertEqual:
+                    ()
+                    !begin:
+            def: :test_begin0: self
+                !let: xs :be []
+                    self.assertEqual:
+                        0
+                        !begin0:
+                            0
+                            xs.append: 1
+                            xs.append: 2
+                    self.assertEqual: xs [1, 2]
+            _ns_:
 
 # TODO: test try
 
