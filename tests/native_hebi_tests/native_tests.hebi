@@ -129,29 +129,29 @@ deftype: TestNative pass:TestCase
 def: TestAnd
     type: 'TestAnd' (TestCase,)
         !let: _ns_ :be hebi.bootstrap..attrs: {}
-            def: :test_null: self
+            def: .test_null: self
                 self.assertIs:
                     True
                     and:
-            def: :test_one: self x
+            def: .test_one: self x
                 :@ given: st.from_type: type
                 self.assertIs:
                     x
                     and: x
-            def: :test_two: self x y
+            def: .test_two: self x y
                 :@ given:
                     st.from_type: type
                     st.from_type: type
                 self.assertIs:
                     (x and y)
                     and: x y
-            def: :test_shortcut: self
+            def: .test_shortcut: self
                 and: 0 (0/0)
                 and: 1 0 (0/0)
                 and: 0 (0/0) (0/0)
-            def: :my_given given
-            def: :test_three: self x y z
-                :@ :my_given:  # Try to read decorator from _ns_.
+            def: .my_given given
+            def: .test_three: self x y z
+                :@ .my_given:  # Try to read decorator from _ns_.
                     st.from_type: type
                     st.from_type: type
                     st.from_type: type
@@ -433,33 +433,35 @@ deftype: TestLoop pass:TestCase
                 if: (c=='C') :then: break: c
                 :else: 'z'
 
-
 def: TestBegin
-    type: 'TestBegin' (TestCase,)
-        !let: _ns_ :be hebi.bootstrap..attrs: {}
-            def: :test_begin: self
-                !let: xs :be []
-                    self.assertEqual:
-                        3
-                        !begin:
-                            xs.append: 1
-                            xs.append: 2
+    types..new_class: 'TestBegin' (TestCase,) None
+        lambda: pass: xAUTO0_
+            !let: _ns_ :be hebi.bootstrap..attrs: xAUTO0_
+                def: .__doc__ "Test Begin Docstring."
+                def: .__module__ operator..getitem: pass:globals '__name__'
+                def: .test_begin: self
+                    !let: xs :be []
+                        self.assertEqual:
                             3
-                    self.assertEqual: xs [1, 2]
-            def: :test_begin_empty: self
-                self.assertEqual:
-                    ()
-                    !begin:
-            def: :test_begin0: self
-                !let: xs :be []
+                            !begin:
+                                xs.append: 1
+                                xs.append: 2
+                                3
+                        self.assertEqual: xs [1, 2]
+                def: .test_begin_empty: self
                     self.assertEqual:
-                        0
-                        !begin0:
+                        ()
+                        !begin:
+                def: .test_begin0: self
+                    !let: xs :be []
+                        self.assertEqual:
                             0
-                            xs.append: 1
-                            xs.append: 2
-                    self.assertEqual: xs [1, 2]
-            _ns_:
+                            !begin0:
+                                0
+                                xs.append: 1
+                                xs.append: 2
+                        self.assertEqual: xs [1, 2]
+                _ns_:
 
 # TODO: test try
 

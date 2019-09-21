@@ -122,8 +122,8 @@ def _decorate(decorators, function):
 def _expand_ns(name):
     if type(name) is tuple:
         return (_expand_ns(name[0]), *name[1:])
-    if type(name) is str and name.startswith(':'):
-        name = '_ns_.' + name[1:]
+    if type(name) is str and name.startswith('.'):
+        name = '_ns_' + name
     return name
 
 
