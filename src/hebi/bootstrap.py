@@ -351,10 +351,10 @@ def mask(form):
             return 'quote', form
         if form[0] == ':,':
             return form[1]
+        if form[0] == 'hebi.basic.._macro_.mask':
+            return mask(mask(form[1]))
         return (
-            ('lambda',(':',':*','xAUTO0_',),'xAUTO0_',),
-            ':',
-            *chain.from_iterable(_mask(form)),
+            BOOTSTRAP + 'entuple', ':', *chain.from_iterable(_mask(form)),
         )
     if case is str and not form.startswith(':'):
         return 'quote', _qualify(form)
@@ -371,6 +371,8 @@ def _mask(forms):
                 yield ':?', form[1]
             elif form[0] == ':,@':
                 yield ':*', form[1]
+            elif form[0] == 'hebi.basic.._macro_.mask':
+                yield ':?', mask(mask(form[1]))
             else:
                 yield ':?', mask(form)
         else:

@@ -271,6 +271,7 @@ if
  (':default', 'a', "(('a'+'b'))"),
  )
 ],
+
 '''
 foo:
     [1, 2,
@@ -283,6 +284,19 @@ bar: 1
  'x'),
 ('bar', 1),
 ],
+
+'''
+!mask:!mask::,::,:a
+:foo:bar
+:foo :bar
+''': [
+    ('hebi.basic.._macro_.mask',
+     ('hebi.basic.._macro_.mask',
+      (':,',
+       (':,','a')))),
+    (':foo','bar'),
+    ':foo', ':bar',
+]
 }
 
 BAD_INDENTS = ['''
