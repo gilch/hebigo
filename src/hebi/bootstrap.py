@@ -80,7 +80,8 @@ def def_(name, *body):
                 continue
             if _is_str(expr):
                 doc = expr
-                body = *ibody,
+            else:
+                ibody = expr, *ibody
             break
         name = _expand_ns(name)
         return (
@@ -90,7 +91,7 @@ def def_(name, *body):
                 decorators,
                 (BOOTSTRAP + 'function',
                  ('quote', name,),
-                 ('lambda', tuple(args), *body),
+                 ('lambda', tuple(args), *ibody),
                  doc)),
         )
     if len(body) == 1:
@@ -119,6 +120,8 @@ def _decorate(decorators, function):
 
 
 def _expand_ns(name):
+    if type(name) is tuple:
+        return (_expand_ns(name[0]), *name[1:])
     if type(name) is str and name.startswith(':'):
         name = '_ns_.' + name[1:]
     return name

@@ -149,8 +149,9 @@ def: TestAnd
                 and: 0 (0/0)
                 and: 1 0 (0/0)
                 and: 0 (0/0) (0/0)
+            def: :my_given given
             def: :test_three: self x y z
-                :@ given:
+                :@ :my_given:  # Try to read decorator from _ns_.
                     st.from_type: type
                     st.from_type: type
                     st.from_type: type
