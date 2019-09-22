@@ -142,7 +142,8 @@ def akword(*args, **kwargs):
 def _classbody(doc, module, callback):
     def exec_callback(ns):
         ns['__module__'] = module
-        ns['__doc__'] = doc
+        if doc is not None:
+            ns['__doc__'] = doc
         callback(attrs(ns))
         return ns
 
