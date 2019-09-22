@@ -113,8 +113,10 @@ def class_(name, *body):
              (BOOTSTRAP + 'akword', *args),
              doc,
              ('.__getitem__', ('globals',), ('quote', '__name__'),),
+             ('lambda',('__class__',),
               ('lambda',('_ns_',),
-               *ibody),),
+               '__class__',
+               *ibody),),),
         )
     )
 
@@ -142,6 +144,7 @@ def akword(*args, **kwargs):
 
 
 def _class_(name, args, doc, module, callback):
+    callback = callback(None)
     def exec_callback(ns):
         ns['__module__'] = module
         if doc is not None:
@@ -151,6 +154,10 @@ def _class_(name, args, doc, module, callback):
 
     bases, kwds = args
     cls = new_class(name, bases, kwds, exec_callback)
+    # new_class() isn't setting super()'s __class__ cell for some reason.
+    # Not sure if it's always this easy to find the right cell.
+    assert len(callback.__closure__) == 1
+    callback.__closure__[0].cell_contents = cls
     return cls
 
 

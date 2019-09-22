@@ -474,7 +474,13 @@ class: TestClass: TestCase
     # test anaphoric _ns_ decorator
     # test anaphoric _ns_ decorator factory
     # test metaclass with kwargs
-    # TODO: super()?
+    def: .test_super: self
+        !let: o :be types..SimpleNamespace:
+            class: o.Spam:
+                def: .__init__: self
+                    super:
+                    None
+            o.Spam:
 
 # TODO: test try
 
