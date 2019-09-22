@@ -471,6 +471,19 @@ class: TestBegin: TestCase
                 6
                 ns.foo
 
+class: TestClass: TestCase
+    # test __module__ set
+    # test __qualname__ set
+    # test __doc__ set if present
+    # test __doc__ not set if not present
+    # test class in class with anaphoric _ns_
+    # test class inside def
+    # test decorator order
+    # test anaphoric _ns_ decorator
+    # test anaphoric _ns_ decorator factory
+    # test metaclass with kwargs
+    # TODO: super()?
+
 # TODO: test try
 
 #def: __package__ "tests.native_hebi_tests"
