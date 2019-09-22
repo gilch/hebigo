@@ -74,14 +74,16 @@ def def_(name, *body):
         doc = None
         decorators = []
         ibody = iter(body)
-        for expr in body:
+        for expr in ibody:
             if expr == ":@":
                 decorators.append(next(ibody))
                 continue
             if _is_str(expr):
                 doc = expr
-                body = *ibody,
+            else:
+                ibody = expr, *ibody
             break
+        name = _expand_ns(name)
         return (
             'hebi.basic.._macro_.def_',
             name,
@@ -89,10 +91,19 @@ def def_(name, *body):
                 decorators,
                 (BOOTSTRAP + 'function',
                  ('quote', name,),
-                 ('lambda', tuple(args), *body),
+                 ('lambda', tuple(args), *ibody),
                  doc)),
         )
     if len(body) == 1:
+        name = _expand_ns(name)
+        if '.' in name:
+            ns, _, attr = name.rpartition('.')
+            return (
+                'builtins..setattr',
+                ns,
+                ('quote', attr),
+                body[0],
+            )
         return (
             '.__setitem__',
             ('builtins..globals',),
@@ -104,8 +115,16 @@ def def_(name, *body):
 
 def _decorate(decorators, function):
     for decorator in reversed(decorators):
-        function = decorator, function
+        function = _expand_ns(decorator), function
     return function
+
+
+def _expand_ns(name):
+    if type(name) is tuple:
+        return (_expand_ns(name[0]), *name[1:])
+    if type(name) is str and name.startswith('.'):
+        name = '_ns_' + name
+    return name
 
 
 def _is_str(s):
@@ -116,14 +135,13 @@ def _is_str(s):
             pass
 
 
-def function(name, fn, doc=None, qualname=None, annotations=None, dict_=()):
+def function(qualname, fn, doc=None, annotations=None, dict_=()):
     """Enhances a Hissp lambda with function metadata.
     Assigns __doc__, __name__, __qualname__, and __annotations__.
-    (__qualname__ is set to name if qualname is unspecified.)
     Then updates __dict__."""
     fn.__doc__ = doc
-    fn.__name__ = name
-    fn.__qualname__ = qualname or name
+    fn.__name__ = qualname.split('.')[-1]
+    fn.__qualname__ = qualname
     fn.__annotations__ = annotations or {}
     fn.__dict__.update(dict_)
     return fn
@@ -694,3 +712,74 @@ def for_(*exprs):
 def runtime(*forms):
     return ('hebi.basic.._macro_.if_', "(__name__!='<compiler>')",
             (':then', *forms))
+
+
+class attrs(object):
+    """
+    Attribute view proxy of a mapping.
+
+    Provides Lua-like syntactic sugar when the mapping has string
+    keys that are also valid Python identifiers, which is a common
+    occurrence in Python, for example, calling vars() on an object
+    returns such a dict.
+
+    Unlike a SimpleNamespace, an attrs proxy doesn't show the extra
+    magic attrs from the class, and it can write through to any type of
+    mapping.
+
+    >>> spam = {}
+    >>> atspam = attrs(spam)
+
+    get and set string keys as attrs
+    >>> atspam.one = 1
+    >>> atspam.one
+    1
+    >>> atspam
+    attrs({'one': 1})
+
+    changes write through to underlying dict
+    >>> spam
+    {'one': 1}
+
+    calling the object returns the underlying dict for direct access
+    to all dict methods and syntax
+    >>> list(
+    ...  atspam().items()
+    ... )
+    [('one', 1)]
+    >>> atspam()['one'] = 42
+    >>> atspam()
+    {'one': 42}
+
+    del removes the key
+    >>> del atspam.one
+    >>> atspam
+    attrs({})
+    """
+
+    __slots__ = "mapping"
+
+    def __init__(self, mapping):
+        object.__setattr__(self, "mapping", mapping)
+
+    def __call__(self):
+        return object.__getattribute__(self, "mapping")
+
+    def __getattribute__(self, attr):
+        try:
+            return self()[attr]
+        except KeyError as ke:
+            raise AttributeError(*ke.args)
+
+    def __setattr__(self, attr, val):
+        self()[attr] = val
+
+    def __delattr__(self, attr):
+        try:
+            del self()[attr]
+        except KeyError as ke:
+            raise AttributeError(*ke.args)
+
+    def __repr__(self):
+        return "attrs(" + repr(self()) + ")"
+
