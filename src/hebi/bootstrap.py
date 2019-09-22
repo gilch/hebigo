@@ -70,20 +70,7 @@ def def_(name, *body):
     Assigns a global value or function in the current module.
     """
     if type(name) is tuple:
-        name, *args = name
-        doc = None
-        decorators = []
-        ibody = iter(body)
-        for expr in ibody:
-            if expr == ":@":
-                decorators.append(next(ibody))
-                continue
-            if _is_str(expr):
-                doc = expr
-            else:
-                ibody = expr, *ibody
-            break
-        name = _expand_ns(name)
+        args, decorators, doc, ibody, name = destructure_decorators(name, body)
         return (
             'hebi.basic.._macro_.def_',
             name,
@@ -113,10 +100,59 @@ def def_(name, *body):
     raise SyntaxError
 
 
-def _decorate(decorators, function):
+def class_(name, *body):
+    args, decorators, doc, ibody, name = destructure_decorators(name, body)
+    return (
+        'hebi.basic.._macro_.def_',
+        name,
+        _decorate(
+            decorators,
+            ('types..new_class', ('quote', name), ':', ':*', (BOOTSTRAP + 'akword', *args),
+             ':?',
+             (BOOTSTRAP + '_classbody',
+              doc,
+              ('.__getitem__', ('globals',), ('quote', '__name__'),),
+              ('lambda',('_ns_',),
+               *ibody),))),
+    )
+
+
+def destructure_decorators(name, body):
+    name, *args = name
+    doc = None
+    decorators = []
+    ibody = iter(body)
+    for expr in ibody:
+        if expr == ":@":
+            decorators.append(next(ibody))
+            continue
+        if _is_str(expr):
+            doc = expr
+        else:
+            ibody = expr, *ibody
+        break
+    name = _expand_ns(name)
+    return args, decorators, doc, ibody, name
+
+
+def akword(*args, **kwargs):
+    return args, kwargs
+
+
+def _classbody(doc, module, callback):
+    def exec_callback(ns):
+        ns['__module__'] = module
+        ns['__doc__'] = doc
+        callback(attrs(ns))
+        return ns
+
+    return exec_callback
+
+
+def _decorate(decorators, callable):
     for decorator in reversed(decorators):
-        function = _expand_ns(decorator), function
-    return function
+        callable = _expand_ns(decorator), callable
+    return callable
 
 
 def _expand_ns(name):

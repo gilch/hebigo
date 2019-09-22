@@ -1,5 +1,6 @@
 from ..bootstrap import (
     def_,
+    class_,
     import_,
     from_,
     if_,

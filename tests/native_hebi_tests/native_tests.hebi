@@ -17,16 +17,13 @@ from: hebi.bootstrap :import function
 
 print: st
 
-hissp.basic.._macro_.requirexH_as:
-    hissp.basic.._macro_.deftype deftype
-
 print: TestCase
 
 def: greet: name
     print: "Hello," name
 
-deftype: TestNative pass:TestCase
-    test_mask lambda: self:
+class: TestNative: TestCase
+    def: .test_mask: self
         self.assertEqual:
             quote:pass:lambda: pass: : foo spam
                 builtins..print: "Hi!"
@@ -51,12 +48,12 @@ deftype: TestNative pass:TestCase
                 quote:pass: spam foo
                     frobnicate: 7 24
                     reticulate: spline
-    test_simple_double_unquote lambda: self:
+    def: .test_simple_double_unquote: self
         self.assertEqual:
             1
             !let: a :be 1
                 !mask:!mask::,::,:a
-    test_double_unquote lambda: self:
+    def: .test_double_unquote: self
         self.assertEqual:
             quote:pass:
                 hebi.bootstrap..entuple: : :? 1  :? 2
@@ -65,24 +62,24 @@ deftype: TestNative pass:TestCase
                 !mask:pass:
                     !mask:pass: :,::,:a 2
                     3
-    test_simple_alternate_double_unquote lambda: self:
+    def: .test_simple_alternate_double_unquote: self
         self.assertEqual:
             2
             !let: a :be 2
                 !mask::,:!mask::,:a
-    test_alternate_double_unquote lambda: self:
+    def: .test_alternate_double_unquote: self
         self.assertEqual:
             quote:pass: 0 pass: 1 2
             !let: a :be 2
                 !mask:pass:
                     0
                     :,:!mask:pass: 1 :,:a
-    test_simple_double_mask_unquote lambda: self:
+    def: .test_simple_double_mask_unquote: self
         self.assertEqual:
             quote:builtins..print
             !let: print :be 3
                 !mask:!mask::,:print
-    test_double_mask_unquote lambda: self:
+    def: .test_double_mask_unquote: self
         self.assertEqual:
             quote:pass:
                 0
@@ -97,7 +94,7 @@ deftype: TestNative pass:TestCase
                         1
                         2
                         :,:print
-    test_elif lambda: self:
+    def: .test_elif: self
         self.assertEqual:
             quote:hebi.bootstrap.._if_:
                 ('a'<'b')
@@ -126,90 +123,81 @@ deftype: TestNative pass:TestCase
                     :else:
                         print: "nan"
 
-def: TestAnd
-    type: 'TestAnd' (TestCase,)
-        !let: _ns_ :be hebi.bootstrap..attrs: {}
-            def: .test_null: self
-                self.assertIs:
-                    True
-                    and:
-            def: .test_one: self x
-                :@ given: st.from_type: type
-                self.assertIs:
-                    x
-                    and: x
-            def: .test_two: self x y
-                :@ given:
-                    st.from_type: type
-                    st.from_type: type
-                self.assertIs:
-                    (x and y)
-                    and: x y
-            def: .test_shortcut: self
-                and: 0 (0/0)
-                and: 1 0 (0/0)
-                and: 0 (0/0) (0/0)
-            def: .my_given given
-            def: .test_three: self x y z
-                :@ .my_given:  # Try to read decorator from _ns_.
-                    st.from_type: type
-                    st.from_type: type
-                    st.from_type: type
-                self.assertIs:
-                    (x and y and z)
-                    and: x y z
-            _ns_:
+class: TestAnd: TestCase
+    def: .test_null: self
+        self.assertIs:
+            True
+            and:
+    def: .test_one: self x
+        :@ given: st.from_type: type
+        self.assertIs:
+            x
+            and: x
+    def: .test_two: self x y
+        :@ given:
+            st.from_type: type
+            st.from_type: type
+        self.assertIs:
+            (x and y)
+            and: x y
+    def: .test_shortcut: self
+        and: 0 (0/0)
+        and: 1 0 (0/0)
+        and: 0 (0/0) (0/0)
+    def: .my_given given
+    def: .test_three: self x y z
+        :@ .my_given:  # Try to read a decorator from _ns_.
+            st.from_type: type
+            st.from_type: type
+            st.from_type: type
+        self.assertIs:
+            (x and y and z)
+            and: x y z
 
-deftype: TestOr pass:TestCase
-    test_null lambda: self:
+class: TestOr: TestCase
+    def: .test_null: self
         self.assertEqual:
             ()
             or:
-    test_one pass:
-        given: st.from_type: type
-        function: quote:test_one
-            lambda: self: x
-                self.assertIs:
-                    x
-                    or: x
-    test_two pass:
-        given:
+    def: .test_one: self x
+        :@ given: st.from_type: type
+        self.assertIs:
+            x
+            or: x
+    def: .test_two: self x y
+        :@ given:
             st.from_type: type
             st.from_type: type
-        function: quote:test_two
-            lambda: self: x y
-                self.assertIs:
-                    (x or y)
-                    or: x y
-    test_shortcut lambda: self:
+        self.assertIs:
+            (x or y)
+            or: x y
+    def: .test_shortcut: self
         or: 1 (0/0)
         or: 0 1 (0/0)
         or: 1 (0/0) (0/0)
-    test_three pass:
-        given:
+    def: .test_three: self x y z
+        :@ given:
             st.from_type: type
             st.from_type: type
             st.from_type: type
-        function: quote:test_three
-            lambda: self: x y z
-                self.assertIs:
-                    (x or y or z)
-                    or: x y z
+        self.assertIs:
+            (x or y or z)
+            or: x y z
 
-deftype: TestLet pass:TestCase
-    test_single lambda: self:
+class: TestLet: TestCase
+    def: .test_single: self
         self.assertEqual:
             42
             !let: a :be (40 + 2)
                 a
-    test_2 lambda: self:
+    def: .test_2: self
         self.assertEqual:
             24
             !let:
                 :,: a b
                 :be [20, 4]
                 (a + b)
-    test_nested lambda: self:
+    def: .test_nested: self
         self.assertEqual:
             [-5, -50]
             !let:
@@ -218,34 +206,34 @@ deftype: TestLet pass:TestCase
                 :be [[1, 10],
                        [6, 60]]
                 [x1 - x2, y1 - y2]
-    test_ignored lambda: self:
+    def: .test_ignored: self
         self.assertEqual:
             [1, 4, 5]
             !let:
                 :,: a _ _ d e
                 :be [1, 2, 3, 4, 5]
                 [a, d, e]
-    test_list lambda: self:
+    def: .test_list: self
         self.assertEqual:
             [1, 2, [3, 4, 5]]
             !let:
                 :,: a b :list c
                 :be [1, 2, 3, 4, 5]
                 [a, b, c]
-    test_iter lambda: self:
+    def: .test_iter: self
         self.assertEqual:
             ['a', 'c', 'b', 'd', 'e']
             !let:
                 :,: a b :iter c
                 :be 'abcde'
                 [a, next(c), b, *c]
-    test_mapping lambda: self:
+    def: .test_mapping: self
         self.assertEqual:
             ['one', 'bar']
             !let: :=: a 1  b 'foo'
                 :be {1: 'one', 'foo': 'bar'}
                 [a, b]
-    test_nested_mapping lambda: self:
+    def: .test_nested_mapping: self
         self.assertEqual:
             ['one', 'spam', 'eggs']
             !let:
@@ -258,14 +246,14 @@ deftype: TestLet pass:TestCase
                        2: {'foo': 'spam'},
                        3: {'bar': 'eggs'}}
                 [a, b, c]
-    test_too_many lambda: self:
+    def: .test_too_many: self
         self.assertEqual:
             [1, 2, 3]
             !let:
                 :,: a b c
                 :be [1, 2, 3, 4, 5]
                 [a, b, c]
-    test_as lambda: self:
+    def: .test_as: self
         self.assertEqual:
             [[3,7], 3, 7, 'xy', 'x', 'y']
             !let:
@@ -273,13 +261,13 @@ deftype: TestLet pass:TestCase
                     :,: x2 y2 :as point2
                 :be [[3, 7], 'xy']
                 [point1, x1, y1, point2, x2, y2]
-    test_mapping_as lambda: self:
+    def: .test_mapping_as: self
         self.assertEqual:
             ['spam', {1:'spam'}]
             !let: :=: s 1 :as d
                 :be {1:'spam'}
                 [s, d]
-    test_nested_mixed lambda: self:
+    def: .test_nested_mixed: self
         self.assertEqual:
             ['a', 'b', 'ab']
             !let:
@@ -310,19 +298,19 @@ deftype: TestLet pass:TestCase
                     1
                 :be {1:[{2:'spam'}]}
                 s
-    test_strs lambda: self:
+    def: .test_strs: self
         self.assertEqual:
             [1, 2, 3]
             !let: :=: :strs: a b c
                 :be {'a':1, 'b':2, 'c':3}
                 [a, b, c]
-    test_default lambda: self:
+    def: .test_default: self
         self.assertEqual:
             ['A','b','C','d']
             !let: :=: a 1  b 2  c 3  d 4  :default: a 'A'  b 'X'  c 'C'
                 :be {2:'b', 4:'d'}
                 [a,b,c,d]
-    test_default_strs lambda: self:
+    def: .test_default_strs: self
         self.assertEqual:
             ['ab', 22, 33]
             !let:
@@ -331,15 +319,15 @@ deftype: TestLet pass:TestCase
                 :be {'b':22,'c':33}
                 [a, b, c]
 
-deftype: TestLoop pass:TestCase
-    test_loop lambda: self:
+class: TestLoop: TestCase
+    def: .test_loop: self
         self.assertEqual:
             'cba'
             !loop: recur: xs 'abc'  ys ''
                 if: xs
                     :then: (recur(xs[:-1], ys + xs[-1]))
                     :else: ys
-    test_try_iter lambda: self:
+    def: .test_try_iter: self
         !let: xs :be []
             !loop: recur: it iter:'abc'
                 try: .append: xs .upper:next:it
@@ -348,14 +336,14 @@ deftype: TestLoop pass:TestCase
             self.assertEqual:
                 ['A', 'B', 'C']
                 xs
-    test_for lambda: self:
+    def: .test_for: self
         !let: xs :be []
             for: c :in 'abc'
                 .append: xs .upper:c
             self.assertEqual:
                 ['A', 'B', 'C']
                 xs
-    test_for_bind lambda: self:
+    def: .test_for_bind: self
         !let: xs :be []
             for: :,: c i
                 :in zip: 'abc' [1,2,3]
@@ -363,7 +351,7 @@ deftype: TestLoop pass:TestCase
             self.assertEqual:
                 ['a','bb','ccc']
                 xs
-    test_break lambda: self:
+    def: .test_break: self
         !let: cs :be iter:'abcdefg'
             self.assertEqual:
                 'c'
@@ -378,7 +366,7 @@ deftype: TestLoop pass:TestCase
             for: c :in 'abc'
                 if: (c=='c')
                     :then: break:
-    test_labeled_break lambda: self:
+    def: .test_labeled_break: self
         !let: ijs :be []
             self.assertEqual:
                 1
@@ -392,7 +380,7 @@ deftype: TestLoop pass:TestCase
                  [1, 2],
                  [1, 1]]
                 ijs
-    test_continue lambda: self:
+    def: .test_continue: self
         !let: ijs :be []
             self.assertEqual:
                 ()
@@ -408,7 +396,7 @@ deftype: TestLoop pass:TestCase
                  [3, 1],
                  [3, 2]]
                 ijs
-    test_labeled_continue lambda: self:
+    def: .test_labeled_continue: self
         !let: ijs :be []
             self.assertEqual:
                 ()
@@ -421,7 +409,7 @@ deftype: TestLoop pass:TestCase
                  [3, 1],
                  [3, 2]]
                 ijs
-    test_for_else lambda: self:
+    def: .test_for_else: self
         self.assertEqual:
             'c'
             for: c :in 'abcdefg'
@@ -433,81 +421,57 @@ deftype: TestLoop pass:TestCase
                 if: (c=='C') :then: break: c
                 :else: 'z'
 
-def: TestDef
-    types..new_class: 'TestDef' (TestCase,) None
-        lambda: pass: xAUTO0_
-            !let: _ns_ :be hebi.bootstrap..attrs: xAUTO0_
-                def: .__module__ operator..getitem: pass:globals '__name__'
-                def: .test_def_ns: self
-                    """ How to emulate local reassignment. """
-                    !let: o :be types..SimpleNamespace:
-                        def: o.foo 2
-                        def: o.foo (o.foo * 3)
-                        self.assertEqual:
-                            6
-                            o.foo
-                def: .test_def_anaphoric_ns: self
-                    !let: _ns_ :be types..SimpleNamespace:
-                        def: .foo 2
-                        def: .foo (_ns_.foo * 3)
-                        self.assertEqual:
-                            6
-                            _ns_.foo
-                _ns_:
+class: TestDef: TestCase
+    def: .test_def_ns: self
+        """ How to emulate local reassignment. """
+        !let: o :be types..SimpleNamespace:
+            def: o.foo 2
+            def: o.foo (o.foo * 3)
+            self.assertEqual:
+                6
+                o.foo
+    def: .test_def_anaphoric_ns: self
+        !let: _ns_ :be types..SimpleNamespace:
+            def: .foo 2
+            def: .foo (_ns_.foo * 3)
+            self.assertEqual:
+                6
+                _ns_.foo
 
-def: TestBegin
-    types..new_class: 'TestBegin' (TestCase,) None
-        lambda: pass: xAUTO0_
-            !let: _ns_ :be hebi.bootstrap..attrs: xAUTO0_
-                def: .__doc__ "Test Begin Docstring."
-                def: .__module__ operator..getitem: pass:globals '__name__'
-                def: .test_begin: self
-                    !let: xs :be []
-                        self.assertEqual:
-                            3
-                            !begin:
-                                xs.append: 1
-                                xs.append: 2
-                                3
-                        self.assertEqual: xs [1, 2]
-                def: .test_begin_empty: self
-                    self.assertEqual:
-                        ()
-                        !begin:
-                def: .test_begin0: self
-                    !let: xs :be []
-                        self.assertEqual:
-                            0
-                            !begin0:
-                                0
-                                xs.append: 1
-                                xs.append: 2
-                        self.assertEqual: xs [1, 2]
-                def: .test_def_ns: self
-                    """ How to emulate local reassignment. """
-                    !let: ns :be types..SimpleNamespace:
-                        def: ns.foo 2
-                        def: ns.foo (ns.foo * 3)
-                        self.assertEqual:
-                            6
-                            ns.foo
-                _ns_:
+class: TestBegin: TestCase
+    "Test Begin Docstring."
+    def: .test_begin: self
+        !let: xs :be []
+            self.assertEqual:
+                3
+                !begin:
+                    xs.append: 1
+                    xs.append: 2
+                    3
+            self.assertEqual: xs [1, 2]
+    def: .test_begin_empty: self
+        self.assertEqual:
+            ()
+            !begin:
+    def: .test_begin0: self
+        !let: xs :be []
+            self.assertEqual:
+                0
+                !begin0:
+                    0
+                    xs.append: 1
+                    xs.append: 2
+            self.assertEqual: xs [1, 2]
+    def: .test_def_ns: self
+        """ How to emulate local reassignment. """
+        !let: ns :be types..SimpleNamespace:
+            def: ns.foo 2
+            def: ns.foo (ns.foo * 3)
+            self.assertEqual:
+                6
+                ns.foo
 
 # TODO: test try
-
-
-# !let: :.: :syms: a b
-#     !let: ns types..SimpleNamespace:
-#         !attach: ns : a 20  b 4
-#         (ns.a + ns.b)
-# class: type ns
-#     a 20
-#     b (ns.a + ns.a)
-#     type:
-# TODO: implement class:
-# class: TestNative: TestCase
-#     def: test_fail: self
-#         self.fail:
 
 #def: __package__ "tests.native_hebi_tests"
 
