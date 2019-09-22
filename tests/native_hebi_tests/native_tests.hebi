@@ -464,8 +464,37 @@ class: TestBegin: TestCase
             self.assertEqual: xs [1, 2]
 
 class: TestClass: TestCase
-    # test __module__ set
-    # test __qualname__ set
+    def: .test_module: self
+        self.assertEqual:
+            'native_tests'
+            self.__module__
+    def: .test_qualname: self
+        self.assertEqual:
+            'TestClass'
+            self.__class__.__qualname__
+    def: .test_method_qualname: self
+        self.assertEqual:
+            'TestClass.test_method_qualname'
+            self.test_method_qualname.__qualname__
+    class: .Spam:
+        def: .eggs: self
+            !let: o :be types..SimpleNamespace:
+                class: o.Bacon:
+                o.Bacon
+    def: .test_nested_qualname: self
+        self.assertEqual:
+            'TestClass.Spam'
+            self.Spam.__qualname__
+    def: .test_nested_method_qualname: self
+        self.assertEqual:
+            'TestClass.Spam.eggs'
+            self.Spam.eggs.__qualname__
+    def: .test_class_in_method_qualname: self
+        self.assertEqual:
+            'o.Bacon'
+            (self.Spam().eggs().__qualname__)
+
+
     # test __doc__ set if present
     # test __doc__ not set if not present
     # test class in class with anaphoric _ns_

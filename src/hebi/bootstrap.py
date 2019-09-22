@@ -66,21 +66,32 @@ def not_(expr):
     return BOOTSTRAP + '_not_', expr
 
 
+def _qualname(ns, name):
+    if hasattr(ns, '__qualname__'):
+        name = name.partition('.')[-1]
+        name = f"{ns.__qualname__}.{name}"
+    return name
+
+
 def def_(name, *body):
     """
     Assigns a global value or function in the current module.
     """
     if type(name) is tuple:
         args, decorators, doc, ibody, name = destructure_decorators(name, body)
+        qualname = ('quote', name,)
+        if name.startswith('_ns_.'):
+            qualname = (BOOTSTRAP + '_qualname', '_ns_', ('quote', name),)
         return (
             'hebi.basic.._macro_.def_',
             name,
             _decorate(
                 decorators,
                 (BOOTSTRAP + 'function',
-                 ('quote', name,),
+                 qualname,
                  ('lambda', tuple(args), *ibody),
-                 doc)),
+                 doc,),
+            ),
         )
     if len(body) == 1:
         name = _expand_ns(name)
@@ -103,6 +114,7 @@ def def_(name, *body):
 
 def class_(name, *body):
     args, decorators, doc, ibody, name = destructure_decorators(name, body)
+    ns = [('lambda', (), '_ns_')] if name.startswith('_ns_.') else ()
     return (
         'hebi.basic.._macro_.def_',
         name,
@@ -112,14 +124,15 @@ def class_(name, *body):
              ('quote', name),
              (BOOTSTRAP + 'akword', *args),
              doc,
-             ('.__getitem__', ('globals',), ('quote', '__name__'),),
+             ('globals',),
              # new_class() isn't setting the __class__ cell for super() for some reason.
              # So we need to make one here.
              ('lambda',('__class__',),
               ('lambda',('_ns_',),
                # Make sure __class__ appears in __closure__, but don't actually use it.
                '(None and __class__)',
-               *ibody),),),
+               *ibody),),
+             *ns,),
         )
     )
 
@@ -146,11 +159,17 @@ def akword(*args, **kwargs):
     return args, kwargs
 
 
-def _class_(name, args, doc, module, wrapped_callback):
+def _class_(name, args, doc, module, wrapped_callback, ns=None):
     class_cell, callback = _class_cell(wrapped_callback)
+    __qualname__ = name
+    if ns and hasattr(ns(), '__qualname__'):
+        name = name.partition('.')[-1]
+        __qualname__ = f"{ns().__qualname__}.{name}"
+    name = name.split('.')[-1]
 
     def exec_callback(ns):
-        ns['__module__'] = module
+        ns['__module__'] = module['__name__']
+        ns['__qualname__'] = __qualname__
         if doc is not None:
             ns['__doc__'] = doc
         callback(attrs(ns))
