@@ -113,9 +113,12 @@ def class_(name, *body):
              (BOOTSTRAP + 'akword', *args),
              doc,
              ('.__getitem__', ('globals',), ('quote', '__name__'),),
+             # new_class() isn't setting the __class__ cell for super() for some reason.
+             # So we need to make one here.
              ('lambda',('__class__',),
               ('lambda',('_ns_',),
-               '__class__',
+               # Make sure __class__ appears in __closure__, but don't actually use it.
+               '(None and __class__)',
                *ibody),),),
         )
     )
@@ -143,8 +146,9 @@ def akword(*args, **kwargs):
     return args, kwargs
 
 
-def _class_(name, args, doc, module, callback):
-    callback = callback(None)
+def _class_(name, args, doc, module, wrapped_callback):
+    class_cell, callback = _class_cell(wrapped_callback)
+
     def exec_callback(ns):
         ns['__module__'] = module
         if doc is not None:
@@ -154,11 +158,21 @@ def _class_(name, args, doc, module, callback):
 
     bases, kwds = args
     cls = new_class(name, bases, kwds, exec_callback)
-    # new_class() isn't setting super()'s __class__ cell for some reason.
-    # Not sure if it's always this easy to find the right cell.
-    assert len(callback.__closure__) == 1
-    callback.__closure__[0].cell_contents = cls
+    # super() needs this.
+    class_cell.cell_contents = cls
     return cls
+
+
+def _class_cell(wrapped_callback):
+    sentinel = object()
+    callback = wrapped_callback(sentinel)
+    # new_class() isn't setting the __class__ cell for super() for some reason.
+    class_cell = dict(zip(callback.__code__.co_freevars, callback.__closure__))['__class__']
+    # Not sure if it's always this easy to find the right cell.
+    assert class_cell.cell_contents is sentinel
+    # Empty the cell so we get the proper error in case it's used too soon.
+    del class_cell.cell_contents
+    return class_cell, callback
 
 
 def _decorate(decorators, callable):
