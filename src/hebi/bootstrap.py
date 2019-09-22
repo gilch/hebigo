@@ -7,6 +7,7 @@ import builtins
 import re
 from functools import wraps
 from itertools import islice, zip_longest, chain, takewhile
+from types import new_class
 
 from hissp.compiler import NS
 
@@ -107,13 +108,14 @@ def class_(name, *body):
         name,
         _decorate(
             decorators,
-            ('types..new_class', ('quote', name), ':', ':*', (BOOTSTRAP + 'akword', *args),
-             ':?',
-             (BOOTSTRAP + '_classbody',
-              doc,
-              ('.__getitem__', ('globals',), ('quote', '__name__'),),
+            (BOOTSTRAP + '_class_',
+             ('quote', name),
+             (BOOTSTRAP + 'akword', *args),
+             doc,
+             ('.__getitem__', ('globals',), ('quote', '__name__'),),
               ('lambda',('_ns_',),
-               *ibody),))),
+               *ibody),),
+        )
     )
 
 
@@ -139,7 +141,7 @@ def akword(*args, **kwargs):
     return args, kwargs
 
 
-def _classbody(doc, module, callback):
+def _class_(name, args, doc, module, callback):
     def exec_callback(ns):
         ns['__module__'] = module
         if doc is not None:
@@ -147,7 +149,9 @@ def _classbody(doc, module, callback):
         callback(attrs(ns))
         return ns
 
-    return exec_callback
+    bases, kwds = args
+    cls = new_class(name, bases, kwds, exec_callback)
+    return cls
 
 
 def _decorate(decorators, callable):
