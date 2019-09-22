@@ -462,14 +462,6 @@ class: TestBegin: TestCase
                     xs.append: 1
                     xs.append: 2
             self.assertEqual: xs [1, 2]
-    def: .test_def_ns: self
-        """ How to emulate local reassignment. """
-        !let: ns :be types..SimpleNamespace:
-            def: ns.foo 2
-            def: ns.foo (ns.foo * 3)
-            self.assertEqual:
-                6
-                ns.foo
 
 class: TestClass: TestCase
     # test __module__ set
