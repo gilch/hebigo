@@ -501,7 +501,7 @@ class: TestClass: TestCase
         self.assertEqual:
             'o.Bacon'
             # (self.Spam().eggs().__qualname__)
-            !of: __qualname__ .eggs: .Spam: self
+            !of: .__qualname__ .eggs: .Spam: self
     def: .test_doc: self
         self.assertEqual:
             """Test doc"""
@@ -525,17 +525,22 @@ class: TestClass: TestCase
 class: TestOf: TestCase
     def: .test_symbol: self
         !let: o :be types..SimpleNamespace: : a 1  b 2
-            self.assertEqual: 1 !of: a o
-            self.assertEqual: 2 !of: b o
+            self.assertEqual: 1 !of: .a o
+            self.assertEqual: 2 !of: .b o
     def: .test_key: self
-        !let: d :be {'a':1, 10:2}
-            self.assertEqual: 1 !of: 'a' d
+        !let: d :be {'.a':1, 10:2}
+            self.assertEqual: 1 !of: '.a' d
             self.assertEqual: 2 !of: 10 d
     def: .test_chained: self
         self.assertEqual:
             42
             # types.SimpleNamespace(attr=[0, {'key': -42}]).attr[1]['key'].__neg__()
-            .__neg__:!of: 'key' 1 attr types..SimpleNamespace: : attr [0, {'key': -42}]
+            .__neg__:!of: 'key' 1 .attr types..SimpleNamespace: : attr [0, {'key': -42}]
+    def: .test_identifier: self
+        self.assertEqual:
+            3.0
+            !let: i :be 2
+                !of: .imag i [1j,2j,3j]
 
 # TODO: test try
 
