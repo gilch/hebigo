@@ -500,7 +500,8 @@ class: TestClass: TestCase
     def: .test_class_in_method_qualname: self
         self.assertEqual:
             'o.Bacon'
-            (self.Spam().eggs().__qualname__)
+            # (self.Spam().eggs().__qualname__)
+            !of: __qualname__ .eggs: .Spam: self
     def: .test_doc: self
         self.assertEqual:
             """Test doc"""
@@ -520,6 +521,21 @@ class: TestClass: TestCase
                     super:
                     None
             o.Spam:
+
+class: TestOf: TestCase
+    def: .test_symbol: self
+        !let: o :be types..SimpleNamespace: : a 1  b 2
+            self.assertEqual: 1 !of: a o
+            self.assertEqual: 2 !of: b o
+    def: .test_key: self
+        !let: d :be {'a':1, 10:2}
+            self.assertEqual: 1 !of: 'a' d
+            self.assertEqual: 2 !of: 10 d
+    def: .test_chained: self
+        self.assertEqual:
+            42
+            # types.SimpleNamespace(attr=[0, {'key': -42}]).attr[1]['key'].__neg__()
+            .__neg__:!of: 'key' 1 attr types..SimpleNamespace: : attr [0, {'key': -42}]
 
 # TODO: test try
 

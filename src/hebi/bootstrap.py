@@ -864,3 +864,12 @@ class attrs(object):
     def __repr__(self):
         return "attrs(" + repr(self()) + ")"
 
+
+def of(*exprs):
+    *keys, collection = exprs
+    for key in reversed(keys):
+        if type(key) is str and not key.startswith('('):
+            collection = ('builtins..getattr', collection, ('quote', key),)
+        else:
+            collection = ('operator..getitem', collection, key)
+    return collection
