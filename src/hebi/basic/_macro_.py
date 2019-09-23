@@ -20,4 +20,5 @@ from ..bootstrap import (
     break_,
     continue_,
     runtime,
+    of,
 )
