@@ -462,27 +462,64 @@ class: TestBegin: TestCase
                     xs.append: 1
                     xs.append: 2
             self.assertEqual: xs [1, 2]
-    def: .test_def_ns: self
-        """ How to emulate local reassignment. """
-        !let: ns :be types..SimpleNamespace:
-            def: ns.foo 2
-            def: ns.foo (ns.foo * 3)
-            self.assertEqual:
-                6
-                ns.foo
 
 class: TestClass: TestCase
-    # test __module__ set
-    # test __qualname__ set
-    # test __doc__ set if present
-    # test __doc__ not set if not present
-    # test class in class with anaphoric _ns_
-    # test class inside def
-    # test decorator order
-    # test anaphoric _ns_ decorator
+    """Test doc"""
+    def: .test_module: self
+        self.assertEqual:
+            'native_tests'
+            self.__module__
+    def: .test_qualname: self
+        self.assertEqual:
+            'TestClass'
+            self.__class__.__qualname__
+    def: .test_method_qualname: self
+        self.assertEqual:
+            'TestClass.test_method_qualname'
+            self.test_method_qualname.__qualname__
+    def: ._y_watch: cls
+        def: cls.watch (cls.watch + "y")
+        cls
+    class: .Spam:
+        :@ ._y_watch
+        :@ lambda: cls:
+            def: cls.watch "x"
+            cls
+        def: .eggs: self
+            !let: o :be types..SimpleNamespace:
+                class: o.Bacon:
+                o.Bacon
+    def: .test_nested_qualname: self
+        self.assertEqual:
+            'TestClass.Spam'
+            self.Spam.__qualname__
+    def: .test_nested_method_qualname: self
+        self.assertEqual:
+            'TestClass.Spam.eggs'
+            self.Spam.eggs.__qualname__
+    def: .test_class_in_method_qualname: self
+        self.assertEqual:
+            'o.Bacon'
+            (self.Spam().eggs().__qualname__)
+    def: .test_doc: self
+        self.assertEqual:
+            """Test doc"""
+            self.__doc__
+    def: .test_decorator_order: self
+        self.assertEqual:
+            "xy"
+            self.Spam.watch
+
     # test anaphoric _ns_ decorator factory
     # test metaclass with kwargs
-    # TODO: super()?
+    # test __doc__ not set in metaclass if not present
+    def: .test_super: self
+        !let: o :be types..SimpleNamespace:
+            class: o.Spam:
+                def: .__init__: self
+                    super:
+                    None
+            o.Spam:
 
 # TODO: test try
 

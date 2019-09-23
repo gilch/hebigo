@@ -7,6 +7,7 @@ import builtins
 import re
 from functools import wraps
 from itertools import islice, zip_longest, chain, takewhile
+from types import new_class
 
 from hissp.compiler import NS
 
@@ -65,21 +66,32 @@ def not_(expr):
     return BOOTSTRAP + '_not_', expr
 
 
+def _qualname(ns, name):
+    if hasattr(ns, '__qualname__'):
+        name = name.partition('.')[-1]
+        name = f"{ns.__qualname__}.{name}"
+    return name
+
+
 def def_(name, *body):
     """
     Assigns a global value or function in the current module.
     """
     if type(name) is tuple:
         args, decorators, doc, ibody, name = destructure_decorators(name, body)
+        qualname = ('quote', name,)
+        if name.startswith('_ns_.'):
+            qualname = (BOOTSTRAP + '_qualname', '_ns_', ('quote', name),)
         return (
             'hebi.basic.._macro_.def_',
             name,
             _decorate(
                 decorators,
                 (BOOTSTRAP + 'function',
-                 ('quote', name,),
+                 qualname,
                  ('lambda', tuple(args), *ibody),
-                 doc)),
+                 doc,),
+            ),
         )
     if len(body) == 1:
         name = _expand_ns(name)
@@ -102,18 +114,26 @@ def def_(name, *body):
 
 def class_(name, *body):
     args, decorators, doc, ibody, name = destructure_decorators(name, body)
+    ns = [('lambda', (), '_ns_')] if name.startswith('_ns_.') else ()
     return (
         'hebi.basic.._macro_.def_',
         name,
         _decorate(
             decorators,
-            ('types..new_class', ('quote', name), ':', ':*', (BOOTSTRAP + 'akword', *args),
-             ':?',
-             (BOOTSTRAP + '_classbody',
-              doc,
-              ('.__getitem__', ('globals',), ('quote', '__name__'),),
+            (BOOTSTRAP + '_class_',
+             ('quote', name),
+             (BOOTSTRAP + 'akword', *args),
+             doc,
+             ('globals',),
+             # new_class() isn't setting the __class__ cell for super() for some reason.
+             # So we need to make one here.
+             ('lambda',('__class__',),
               ('lambda',('_ns_',),
-               *ibody),))),
+               # Make sure __class__ appears in __closure__, but don't actually use it.
+               '(None and __class__)',
+               *ibody),),
+             *ns,),
+        )
     )
 
 
@@ -139,15 +159,39 @@ def akword(*args, **kwargs):
     return args, kwargs
 
 
-def _classbody(doc, module, callback):
+def _class_(name, args, doc, module, wrapped_callback, ns=None):
+    class_cell, callback = _class_cell(wrapped_callback)
+    __qualname__ = name
+    if ns and hasattr(ns(), '__qualname__'):
+        name = name.partition('.')[-1]
+        __qualname__ = f"{ns().__qualname__}.{name}"
+    name = name.split('.')[-1]
+
     def exec_callback(ns):
-        ns['__module__'] = module
+        ns['__module__'] = module['__name__']
+        ns['__qualname__'] = __qualname__
         if doc is not None:
             ns['__doc__'] = doc
         callback(attrs(ns))
         return ns
 
-    return exec_callback
+    bases, kwds = args
+    cls = new_class(name, bases, kwds, exec_callback)
+    # super() needs this.
+    class_cell.cell_contents = cls
+    return cls
+
+
+def _class_cell(wrapped_callback):
+    sentinel = object()
+    callback = wrapped_callback(sentinel)
+    # new_class() isn't setting the __class__ cell for super() for some reason.
+    class_cell = dict(zip(callback.__code__.co_freevars, callback.__closure__))['__class__']
+    # Not sure if it's always this easy to find the right cell.
+    assert class_cell.cell_contents is sentinel
+    # Empty the cell so we get the proper error in case it's used too soon.
+    del class_cell.cell_contents
+    return class_cell, callback
 
 
 def _decorate(decorators, callable):
