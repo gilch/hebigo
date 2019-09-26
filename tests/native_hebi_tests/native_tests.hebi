@@ -542,6 +542,15 @@ class: TestOf: TestCase
             !let: i :be 2
                 !of: .imag i [1j,2j,3j]
 
+class: TestAttach: TestCase
+    def: .test_attach: self
+        !let: :,: foo bar baz spam eggs o
+            :be hebi.bootstrap..entuple: 1 2 3 4 5 types..SimpleNamespace:
+            !attach: o foo bar baz : quux spam  norlf eggs
+            self.assertEqual:
+                types..SimpleNamespace: : foo 1  bar 2  baz 3  quux 4  norlf 5
+                o
+
 # TODO: test try
 
 #def: __package__ "tests.native_hebi_tests"

@@ -21,4 +21,5 @@ from ..bootstrap import (
     continue_,
     runtime,
     of,
+    attach,
 )
