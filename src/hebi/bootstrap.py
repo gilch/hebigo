@@ -494,10 +494,15 @@ def _qualify(symbol):
 
 
 def _begin(*body):
-    return body and body[-1]
+    return body[-1]
 
 
 def begin(*body):
+    case = len(body)
+    if case == 0:
+        return ()
+    if case == 1:
+        return body[0]
     return (BOOTSTRAP + '_begin', *body)
 
 
@@ -506,6 +511,8 @@ def _begin0(zero, *body):
 
 
 def begin0(*body):
+    if len(body) == 1:
+        return body[0]
     return (BOOTSTRAP + '_begin0', *body)
 
 
