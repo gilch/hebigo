@@ -878,6 +878,7 @@ def of(*exprs):
 def _attach(target, **kwargs):
     for k, v in kwargs.items():
         setattr(target, k, v)
+    return target
 
 
 def attach(target, *args):
