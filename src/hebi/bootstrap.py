@@ -96,7 +96,7 @@ def def_(name, *body):
     if len(body) == 1:
         name = _expand_ns(name)
         if '.' in name:
-            ns, _, attr = name.rpartition('.')
+            ns, attr = name.rsplit('.', 1)
             return (
                 'builtins..setattr',
                 ns,
@@ -494,10 +494,15 @@ def _qualify(symbol):
 
 
 def _begin(*body):
-    return body and body[-1]
+    return body[-1]
 
 
 def begin(*body):
+    case = len(body)
+    if case == 0:
+        return ()
+    if case == 1:
+        return body[0]
     return (BOOTSTRAP + '_begin', *body)
 
 
@@ -506,6 +511,8 @@ def _begin0(zero, *body):
 
 
 def begin0(*body):
+    if len(body) == 1:
+        return body[0]
     return (BOOTSTRAP + '_begin0', *body)
 
 
@@ -878,6 +885,7 @@ def of(*exprs):
 def _attach(target, **kwargs):
     for k, v in kwargs.items():
         setattr(target, k, v)
+    return target
 
 
 def attach(target, *args):
@@ -891,3 +899,21 @@ def attach(target, *args):
         *iargs,
     )
 
+
+def del_(*args):
+    return (
+        BOOTSTRAP + 'begin',
+        *_del_(args),
+        (),
+    )
+
+
+def _del_(args):
+    for arg in args:
+        if '.' in arg:
+            if arg.startswith('.'):
+                arg = '_ns_'+arg
+            o, attr = arg.rsplit('.', 1)
+            yield ('builtins..delattr', o, ('quote', attr,),)
+        else:
+            yield ('operator..delitem', ('globals',), ('quote', arg,),)
