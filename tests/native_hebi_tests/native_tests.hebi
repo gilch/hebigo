@@ -551,6 +551,50 @@ class: TestAttach: TestCase
                 types..SimpleNamespace: : foo 1  bar 2  baz 3  quux 4  norlf 5
                 o
 
+class: TestDel: TestCase
+    def: .setUp: self
+        !let: _ns_ :be self
+            def: .delete_me 'foo delete'
+        def: DELETE_ME 'bar delete'
+        def: self.o types..SimpleNamespace:
+        def: self.o.foo 2
+    def: .test_del_ns: self
+        self.assertIn: 'delete_me' vars:self
+        !let: _ns_ :be self
+            del: .delete_me
+        self.assertNotIn: 'delete_me' vars:self
+    def: .test_del_global: self
+        self.assertIn: 'DELETE_ME' globals:
+        del: DELETE_ME
+        self.assertNotIn: 'DELETE_ME' globals:
+    def: .test_del_attr: self
+        !let: o :be types..SimpleNamespace: : a 1
+            self.assertIn: 'a' vars:o
+            del: o.a
+            self.assertNotIn: 'a' vars:o
+    def: .test_del_empty: self
+        del:
+    def: .test_del_multiple: self
+        !let: :,: _ns_ o
+            :be !mask:pass: :,:self :,:types..SimpleNamespace: : a 1  b 2  c 3
+            del: DELETE_ME .delete_me o.a
+            self.assertNotIn: 'a' vars:o
+            self.assertEqual:
+                types..SimpleNamespace: : b 2  c 3
+                o
+        self.assertNotIn: 'delete_me' vars:self
+        self.assertNotIn: 'DELETE_ME' globals:
+    def: .test_del_nested: self
+        self.assertEqual:
+            types..SimpleNamespace: : foo 2
+            self.o
+        del: self.o.foo
+        self.assertEqual:
+            types..SimpleNamespace:
+            self.o
+
+
+
 # TODO: test try
 
 #def: __package__ "tests.native_hebi_tests"

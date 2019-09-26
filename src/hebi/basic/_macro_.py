@@ -22,4 +22,5 @@ from ..bootstrap import (
     runtime,
     of,
     attach,
+    del_,
 )
