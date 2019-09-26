@@ -873,3 +873,21 @@ def of(*exprs):
         else:
             collection = ('operator..getitem', collection, key)
     return collection
+
+
+def _attach(target, **kwargs):
+    for k, v in kwargs.items():
+        setattr(target, k, v)
+
+
+def attach(target, *args):
+    iargs = iter(args)
+    args = takewhile(lambda a: a!=':', iargs)
+    return (
+        BOOTSTRAP + '_attach',
+        target,
+        ':',
+        *chain.from_iterable((a, a) for a in args),
+        *iargs,
+    )
+
