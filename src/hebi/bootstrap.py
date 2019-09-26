@@ -895,13 +895,17 @@ def attach(target, *args):
 def del_(*args):
     return (
         BOOTSTRAP + 'begin',
-        *(
-            ('builtins..delattr', *(lambda x, y:[x,('quote',y)])(*arg.rsplit('.', 1)),)
-            if '.' in arg
-            else ('operator..delitem',
-                  ('globals',),
-                  ('quote', arg,),)
-            for arg in ('_ns_'+a if a.startswith('.') else a for a in args)
-        ),
+        *_del_(args),
         (),
     )
+
+
+def _del_(args):
+    for arg in args:
+        if '.' in arg:
+            if arg.startswith('.'):
+                arg = '_ns_'+arg
+            o, attr = arg.rsplit('.', 1)
+            yield ('builtins..delattr', o, ('quote', attr,),)
+        else:
+            yield ('operator..delitem', ('globals',), ('quote', arg,),)
