@@ -96,7 +96,7 @@ def def_(name, *body):
     if len(body) == 1:
         name = _expand_ns(name)
         if '.' in name:
-            ns, _, attr = name.rpartition('.')
+            ns, attr = name.rsplit('.', 1)
             return (
                 'builtins..setattr',
                 ns,
