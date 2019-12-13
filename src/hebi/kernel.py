@@ -9,10 +9,10 @@ from hebi import parser
 
 class HebigoKernel(Kernel):
     implementation = "hebigo"
-    implementation_version = "hebigo"
+    implementation_version = "0.1.0"
     language = "hebigo"
-    language_version = "hebigo"
-    banner = "hebigo"
+    language_version = "0.1.0"
+    banner = "Hebigo kernel"
 
     language_info = {"mimetype": "text/hebigo", "file_extension": "hebi"}
 
