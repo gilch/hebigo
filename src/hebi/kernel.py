@@ -1,6 +1,8 @@
+import traceback
 from typing import Optional
 
 from ipykernel.kernelbase import Kernel
+from hissp.compiler import Compiler
 
 from hebi import parser
 
@@ -13,6 +15,10 @@ class HebigoKernel(Kernel):
     banner = "hebigo"
 
     language_info = {"mimetype": "text/hebigo", "file_extension": "hebi"}
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.compiler = Compiler(evaluate=False)
 
     def do_execute(
         self,
@@ -40,10 +46,18 @@ class HebigoKernel(Kernel):
         # To display output, it can send messages using
         # send_response(). See Messaging in IPython for details of the
         # different message types.
-        result = str(list(parser.reads(code)))
-        if not silent:
-            stream_content = {'name': 'stdout', 'text': result}
-            self.send_response(self.iopub_socket, 'stream', stream_content)
+        try:
+            result = self.compiler.compile(parser.reads(code))
+        except:
+            if not silent:
+                self.send_response(
+                    self.iopub_socket,
+                    'stream',
+                    {'name': 'stderr', 'text': traceback.format_exc()})
+        else:
+            if not silent:
+                stream_content = {'name': 'stdout', 'text': result}
+                self.send_response(self.iopub_socket, 'stream', stream_content)
 
         return {
             'status': 'ok',
