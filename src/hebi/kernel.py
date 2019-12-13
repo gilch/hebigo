@@ -1,8 +1,8 @@
 import traceback
 from typing import Optional
 
-from ipykernel.kernelbase import Kernel
 from hissp.compiler import Compiler
+from ipykernel.kernelbase import Kernel
 
 from hebi import parser
 
