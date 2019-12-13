@@ -47,35 +47,35 @@ class HebigoKernel(Kernel):
         # send_response(). See Messaging in IPython for details of the
         # different message types.
         try:
-            result = self.compiler.compile(parser.reads(code))
+            exec(
+                compile(self.compiler.compile(parser.reads(code)), "<repl>", "single"),
+                self.compiler.ns,
+            )
         except:
             if not silent:
                 self.send_response(
                     self.iopub_socket,
-                    'stream',
-                    {'name': 'stderr', 'text': traceback.format_exc()})
-        else:
-            if not silent:
-                stream_content = {'name': 'stdout', 'text': result}
-                self.send_response(self.iopub_socket, 'stream', stream_content)
+                    "stream",
+                    {"name": "stderr", "text": traceback.format_exc()},
+                )
 
         return {
-            'status': 'ok',
-            'execution_count': self.execution_count,
-            'payload': [],  # Deprecated?
-            'user_expressions': {},  # Unused?
+            "status": "ok",
+            "execution_count": self.execution_count,
+            "payload": [],  # Deprecated?
+            "user_expressions": {},  # Unused?
         }
 
     def do_is_complete(self, code: str):
-        status = 'incomplete'
-        if ':' not in code or code.endswith('\n'):
-            status = 'complete'
+        status = "incomplete"
+        if ":" not in code or code.endswith("\n"):
+            status = "complete"
         try:
             list(parser.reads(code))
         except:
-            status = 'incomplete'
-        assert status in {'complete', 'incomplete', 'invalid', 'unknown'}
-        return {'status': status}
+            status = "incomplete"
+        assert status in {"complete", "incomplete", "invalid", "unknown"}
+        return {"status": status}
 
 
 if __name__ == "__main__":
