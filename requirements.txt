@@ -1,4 +1,5 @@
 hissp
+jupyter-console
 
 # Required for testing only.
 hypothesis
