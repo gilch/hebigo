@@ -1,3 +1,7 @@
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 import traceback
 from typing import Optional
 
@@ -33,12 +37,11 @@ class HebigoKernel(Kernel):
         silent (bool) – Whether to display output.
         store_history (bool) – Whether to record this code in history
             and increase the execution count. If silent is True, this
-            is implicitly False.
+            is implicitly False. Currently ignored.
         user_expressions (dict) – Mapping of names to expressions to
-            evaluate after the code has run. You can ignore this if
-            you need to.
+            evaluate after the code has run. Currently ignored.
         allow_stdin (bool) – Whether the frontend can provide input on
-            request (e.g. for Python’s raw_input()).
+            request (e.g. for Python’s raw_input()). Currently ignored.
 
         returns a dict containing the fields described in Execution
         results.
