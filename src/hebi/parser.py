@@ -206,21 +206,3 @@ def transpile_module(
             f.write(compiler.Compiler(qualsymbol, evaluate=True).compile(hissp))
 
 
-code = '''\
-test_default_strs lambda: self:
-    self.assertEqual:
-        ['ab', 22, 33]
-        !let:
-            :=: :strs: a b c
-                :default: a ('a'+'b')
-            {'b':22,'c':33}
-            [a, b, c]
-'''
-
-for k, v in lex(code):
-    print(k, repr(v))
-
-
-pprint(list(reads(code)))
-
-print('DONE')
