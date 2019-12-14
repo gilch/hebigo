@@ -51,6 +51,8 @@ class HebigoKernel(Kernel):
                 compile(self.compiler.compile(parser.reads(code)), "<repl>", "single"),
                 self.compiler.ns,
             )
+        except SystemExit:
+            raise  # TODO: how do we shut down properly?
         except:
             if not silent:
                 self.send_response(
