@@ -68,7 +68,7 @@ class HebigoKernel(Kernel):
 
     def do_is_complete(self, code: str):
         status = "incomplete"
-        if ":" not in code or code.endswith("\n"):
+        if ": " not in code and not code.endswith(':') or code.endswith("\n"):
             status = "complete"
         try:
             list(parser.reads(code))
