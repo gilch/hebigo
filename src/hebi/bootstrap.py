@@ -541,8 +541,8 @@ def _assert_message(b, thunk):
 
 def assert_(b, *message):
     if message:
-        return BOOTSTRAP + '_assert_', b
-    return BOOTSTRAP + '_assert_message', b, _thunk(*message)
+        return BOOTSTRAP + '_assert_message', b, _thunk(*message)
+    return BOOTSTRAP + '_assert_', b
 
 
 def _flatten_tuples(expr):
