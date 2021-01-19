@@ -284,14 +284,14 @@ def _if_(b, thunk, *elifs, else_=lambda:()):
 def if_(condition, then, *pairs):
     """
     if: (a<b)
-        :then:
-            print: "less"
-        :elif: (a>b)
-            print: "more"
-        :elif: (a==b)
-            print: "equal"
-        :else:
-            print: "nan"
+      :then:
+        print: "less"
+      :elif: (a>b)
+        print: "more"
+      :elif: (a==b)
+        print: "equal"
+      :else:
+        print: "nan"
     """
 
     else_ = ()
@@ -404,19 +404,19 @@ def _try_(thunk, *except_, else_=None, finally_=lambda:()):
 def try_(expr, *handlers):
     """
     try:
-        !begin:
-            print: "It's dangerous!"
-            something_risky: thing
-        :except: LikelyProblemError
-            print: "Oops!"
-            fix_it:
-        :except: Exception :as ex
-            do_something: ex
-        :else:
-            print: "Hooray!"
-            thing
-        :finally:
-            .close: thing
+      !begin:
+        print: "It's dangerous!"
+        something_risky: thing
+      :except: LikelyProblemError
+        print: "Oops!"
+        fix_it:
+      :except: Exception :as ex
+        do_something: ex
+      :else:
+        print: "Hooray!"
+        thing
+      :finally:
+        .close: thing
     """
     else_ = ()
     finally_ = ()
@@ -524,7 +524,7 @@ def _with_(guard, body):
 def with_(guard, *body):
     """
     with: foo:bar :as baz
-        frobnicate: baz
+      frobnicate: baz
     """
     if len(body) > 2 and body[1] == ':as':
         return BOOTSTRAP + '_with_', _thunk(guard), ('lambda',(body[2],),*body[3:]),
@@ -704,8 +704,8 @@ def _loop(f):
 def loop(start, *body):
     """
     !loop: recur: xs 'abc'  ys ''
-        if: xs :then: recur(xs[:-1], ys+xs[-1])
-            :else: ys
+      if: xs :then: recur(xs[:-1], ys+xs[-1])
+        :else: ys
     """
     return (
         BOOTSTRAP + '_loop',
@@ -716,7 +716,7 @@ def loop(start, *body):
 
 class LabeledBreak(BaseException):
     def handle(self, label=None):
-        """ re-raise self if label doesn't match. """
+        """Re-raise self if label doesn't match."""
         if self.label is None or self.label == label:
             return
         else:
