@@ -8,19 +8,19 @@ import re
 from contextlib import contextmanager
 from contextvars import ContextVar
 from importlib import resources
-from pathlib import PurePath, Path
-from pprint import pprint
+from pathlib import Path, PurePath
 from types import ModuleType
 from typing import Union
 
 from hissp import compiler
 
-TOKEN = re.compile(r"""(?x)
+TOKEN = re.compile(
+    r"""(?x)
  (?P<end>[)\]}])
 |(?P<comment>\n?[ ]*[#].*)
 |(?P<indent>(?<=\n)[ ]*(?=[^\r\n]))
 |(?P<empty>\([ \r\n]*\))
-|(?P<python>[([{]|(?:[rR][bfBF]?|[bfBF][rR]?|[uU])?(?:'''|["]""|['"]))
+|(?P<python>[(\[{]|(?:[rR][bfBF]?|[bfBF][rR]?|[uU])?(?:'''|["]""|['"]))
 |(?P<blank>\r?\n)
 |(?P<sp>[ ])
 |(?P<eol>(?<=\n))
@@ -40,21 +40,24 @@ TOKEN = re.compile(r"""(?x)
 |(?P<controlword>:[^: \r\n"')\]}]*)
 |(?P<symbol>[^ \r\n"')\]}]+)
 |(?P<error>.|\n)
-""")
+"""
+)
 
 
 def end(s):
     for q in ['"""', "'''", "'", '"']:
         if q in s:
             return q
-    return {'(': ')', '[': ']', '{': '}'}[s]
+    return {"(": ")", "[": "]", "{": "}"}[s]
 
 
-IGNORE = frozenset({
-    'comment',
-    'sp',
-    'blank',
-})
+IGNORE = frozenset(
+    {
+        "comment",
+        "sp",
+        "blank",
+    }
+)
 
 
 def lex(code):
@@ -71,70 +74,101 @@ def lex(code):
     """
     opens = 0
     indents = [0]
-    tokens = iter(TOKEN.finditer(code + '\n'))
+    tokens = iter(TOKEN.finditer(code + "\n"))
     for token in tokens:
         case = token.lastgroup
         group = token.group()
-        assert case != 'error'
-        if case == 'python':
+        assert case != "error"
+        if case == "python":
             python_list = [group]
             while 1:
                 t = next(tokens)
                 python_list.append(t.group())
-                if (t.lastgroup in {'end', 'python'} and t.group() == end(group)):
-                    python = ''.join(python_list)
+                if t.lastgroup in {"end", "python"} and t.group() == end(group):
+                    python = "".join(python_list)
                     try:
-                        ast.parse(python + '\n\n', mode='eval')
+                        ast.parse(python + "\n\n", mode="eval")
                     except SyntaxError as se:
-                        if 'EOL' in se.msg or 'EOF' in se.msg:
+                        if "EOL" in se.msg or "EOF" in se.msg:
                             continue  # Token not complete yet.
                         raise
                     else:
-                        yield 'python', python
+                        yield "python", python
                         break
         elif case in IGNORE:
             pass
-        elif case == 'indent':
+        elif case == "indent":
             width = len(group)
             if width > indents[-1]:
                 if len(indents) > opens:
-                    ie = IndentationError("New indent in same block. (Did you miss a colon?)")
-                    ie.text = code[:code.find('\n', token.span()[1])]
-                    ie.lineno = ie.text.count('\n')
+                    ie = IndentationError(
+                        "New indent in same block. (Did you miss a colon?)"
+                    )
+                    ie.text = code[: code.find("\n", token.span()[1])]
+                    ie.lineno = ie.text.count("\n")
                     raise ie
                 indents.append(width)
             elif width < indents[-1]:
                 while width < indents[-1]:
                     indents.pop()
                     opens -= 1
-                    yield 'close', 'DEDENT'
+                    yield "close", "DEDENT"
             while opens >= len(indents):
                 opens -= 1
-                yield 'close', 'EQDENT'
-        elif case == 'multiary':
+                yield "close", "EQDENT"
+        elif case == "multiary":
             opens += 1
-            yield 'open', ':'
-            if group != 'pass:':
+            yield "open", ":"
+            if group != "pass:":
                 yield case, group[:-1]
-        elif case == 'unary':
+        elif case == "unary":
             yield case, group[:-1]
-        elif case == 'eol':
+        elif case == "eol":
             while opens - 1 > len(indents):
                 opens -= 1
-                yield 'close', 'EOL'
+                yield "close", "EOL"
         else:
             yield case, group
 
     while opens:
         opens -= 1
-        yield 'close', 'EOF'
+        yield "close", "EOF"
 
 
 RESERVED_WORDS = frozenset(
-    {'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def',
-     'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if',
-     'import', 'in', 'is', 'nonlocal', 'not', 'or', 'raise', 'return',
-     'try', 'while', 'with', 'yield'})
+    {
+        "and",
+        "as",
+        "assert",
+        "async",
+        "await",
+        "break",
+        "class",
+        "continue",
+        "def",
+        "del",
+        "elif",
+        "else",
+        "except",
+        "finally",
+        "for",
+        "from",
+        "global",
+        "if",
+        "import",
+        "in",
+        "is",
+        "nonlocal",
+        "not",
+        "or",
+        "raise",
+        "return",
+        "try",
+        "while",
+        "with",
+        "yield",
+    }
+)
 
 
 def parse(tokens):
@@ -142,23 +176,23 @@ def parse(tokens):
     for case, group in tokens:
         if group in RESERVED_WORDS:
             group = f"hebi.basic.._macro_.{group}_"
-        elif group.startswith('!'):
+        elif group.startswith("!"):
             group = f"hebi.basic.._macro_.{group[1:]}"
-        if case == 'open':
+        if case == "open":
             yield (*parse(tokens),)
-        elif case == 'close':
+        elif case == "close":
             return
-        elif case == 'unary':
-            if group == 'pass':
+        elif case == "unary":
+            if group == "pass":
                 yield next(parse(tokens)),
             else:
                 yield group, next(parse(tokens)),
-        elif case == 'symbol':
-            if all(s.isidentifier() for s in group.split('.') if s):
+        elif case == "symbol":
+            if all(s.isidentifier() for s in group.split(".") if s):
                 yield group
             else:
                 yield ast.literal_eval(group)
-        elif case == 'python':
+        elif case == "python":
             # Parentheses let the compiler know it's Python expression code.
             yield f"({group})"
         else:
@@ -188,9 +222,9 @@ def qualify_context(qualname):
 
 
 def transpile_module(
-        package: resources.Package,
-        resource: Union[str, PurePath],
-        out: Union[None, str, bytes, Path] = None,
+    package: resources.Package,
+    resource: Union[str, PurePath],
+    out: Union[None, str, bytes, Path] = None,
 ):
     code = resources.read_text(package, resource)
     path: Path
@@ -200,9 +234,9 @@ def transpile_module(
             package = package.__package__
         if isinstance(package, os.PathLike):
             resource = resource.stem
-        with open(out, "w") as f, qualify_context(f"{package}.{resource.split('.')[0]}") as qualsymbol:
+        with open(out, "w") as f, qualify_context(
+            f"{package}.{resource.split('.')[0]}"
+        ) as qualsymbol:
             print("writing to", out)
             hissp = parse(lex(code))
             f.write(compiler.Compiler(qualsymbol, evaluate=True).compile(hissp))
-
-
