@@ -20,7 +20,7 @@ TOKEN = re.compile(r"""(?x)
 |(?P<comment>\n?[ ]*[#].*)
 |(?P<indent>(?<=\n)[ ]*(?=[^\r\n]))
 |(?P<empty>\([ \r\n]*\))
-|(?P<python>[([{]|(?:[rR][bfBF]?|[bfBF][rR]?|[uU])?(?:'''|["]""|['"]))
+|(?P<python>[(\[{]|(?:[rR][bfBF]?|[bfBF][rR]?|[uU])?(?:'''|["]""|['"]))
 |(?P<blank>\r?\n)
 |(?P<sp>[ ])
 |(?P<eol>(?<=\n))
@@ -81,7 +81,7 @@ def lex(code):
             while 1:
                 t = next(tokens)
                 python_list.append(t.group())
-                if (t.lastgroup in {'end', 'python'} and t.group() == end(group)):
+                if t.lastgroup in {'end', 'python'} and t.group() == end(group):
                     python = ''.join(python_list)
                     try:
                         ast.parse(python + '\n\n', mode='eval')
