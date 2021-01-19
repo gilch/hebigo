@@ -8,8 +8,7 @@ import re
 from contextlib import contextmanager
 from contextvars import ContextVar
 from importlib import resources
-from pathlib import PurePath, Path
-from pprint import pprint
+from pathlib import Path, PurePath
 from types import ModuleType
 from typing import Union
 
