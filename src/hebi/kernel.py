@@ -6,12 +6,17 @@ import traceback
 from typing import Optional
 
 from hissp.compiler import Compiler
-from ipykernel.kernelbase import Kernel
+from metakernel import MetaKernel
 
 from hebi import parser
 
 
-class HebigoKernel(Kernel):
+class HebigoKernel(MetaKernel):
+    kernel_json = {
+        "argv": ["python", "-m", "hebi.kernel", "-f", "{connection_file}"],
+        "display_name": "Hebigo",
+        "name": "hebigo",
+    }
     implementation = "hebigo"
     implementation_version = "0.1.0"
     language = "hebigo"
@@ -84,6 +89,4 @@ class HebigoKernel(Kernel):
 
 
 if __name__ == "__main__":
-    from ipykernel.kernelapp import IPKernelApp
-
-    IPKernelApp.launch_instance(kernel_class=HebigoKernel)
+    HebigoKernel.run_as_main()
