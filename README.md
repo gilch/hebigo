@@ -1,8 +1,19 @@
+[![Gitter](https://badges.gitter.im/hissp-lang/community.svg)](https://gitter.im/hissp-lang/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 # Hebigo
-蛇語(heh-bee-go): Snake-speak.
-Hebigo is an indentation-based Hissp skin designed to resemble Python.
+蛇語(HEH-bee-go): Snake-speak.
+Hebigo is an indentation-based [Hissp](https://github.com/gilch/hissp) skin designed to resemble Python.
 
-Hebigo is still in the prototyping phase. See the native tests for example Hebigo code.
+It includes the Hebigo Hissp reader, the Jupyter-console based Hebigo REPL,
+and the Hebigo basic macros—a collection of Python-like compiler macros,
+which also function independently of the Hebigo reader
+(i.e. they work in Lissp or Hissp readerless mode as well).
+
+Hebigo is still in the prototyping phase, so it's not on PyPI yet.
+Install it directly from GitHub with
+```
+pip install git+https://github.com/gilch/hebigo
+```
+See the native tests for example Hebigo code.
 
 Hebigo keeps Python's expressions as *bracketed expressions*,
 but completely replaces Python's *statements* with *hotword expressions*,
@@ -19,11 +30,11 @@ Bracketed expressions are mainly used for infix operators, simple literals, and 
 but any Python expression will work,
 even more complex ones like nested comprehensions or chained method calls.
 It's best to keep these simple though.
-Because you can't use macros in them.
+You can't use macros in them.
 
 ## Hotword Expressions
 Hotword expressions are called expressions because they evaluate to a value,
-but they resemble Python's statements in form, like
+but they resemble Python's statements in form:
 ```
 word:
    block1
@@ -77,8 +88,8 @@ In the example above, `foo` is not a hotword (no colon),
 and the compound hotword `unary:gets_block:` is the first hotword of the line,
 so it gets the indented block below the line.
 
-5. The special hotword `pass:` uses its first argument for the invocation.
-This allows you to invoke things that are not words, like lambda expressions.
+5. The special hotword `pass:` invokes its first argument, passing it the remainder.
+This allows you to invoke things that are not words, like lambda expressions:
 ```
 pass: foo a b
 pass: (lambda *a: a) 1 2 3
@@ -89,7 +100,7 @@ foo(a, b)
 (lambda *a: a)(1, 2, 3)
 ```
 ### Style
-These indentation rules were designed to resemble Python and make editing easier with a basic editor than for s-expressions.
+These indentation rules were designed to resemble Python and make editing easier with a basic editor than for S-expressions.
 As a matter of style, arguments should be passed in one of three forms, which should not be mixed for function calls.
 ```
 linear: a b c d
@@ -157,7 +168,9 @@ These two expressions are normally equivalent in Hebigo.
 print: 1 2 3 : :* 'abc'  sep "/"  # Hotword expression.
 (print(1, 2, 3, *'abc', sep="/"))  # Bracketed expression.
 ```
-But they would not be the same if `print` were a macro,
+However, if a macro named `print` were defined,
+then the hotword version would invoke the macro,
+but the bracketed version would still invoke the builtin,
 because macros can only be invoked in hotword expressions.
 
 Control words may also be used as hotwords,
@@ -174,6 +187,7 @@ but not the reverse, since bracketed expressions must be valid Python,
 just like how the statements that the hotword expressions replace may contain expressions,
 but Python expressions may not contain Python statements.
 
-And finally, the `!` is an abbreviation for `hebi.basic.._macro_.`.
-This obviously doesn't work in bracketed expressions either.
+And finally, the `!` is an abbreviation for `hebi.basic.._macro_.`,
+the qualifier for Hebigo's included macros.
+(This can't work in bracketed expressions either.)
 Hebigo has no other "reader macros".
