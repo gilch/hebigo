@@ -218,10 +218,15 @@ def _is_str(s):
 
 def function(qualname, fn, doc=None, annotations=None, dict_=()):
     """Enhances a Hissp lambda with function metadata.
+
+    Replaces __code__ with co_name set to name.
     Assigns __doc__, __name__, __qualname__, and __annotations__.
-    Then updates __dict__."""
+    Then updates __dict__.
+    """
+    name = qualname.split('.')[-1]
+    fn.__code__ = fn.__code__.replace(co_name=name)
     fn.__doc__ = doc
-    fn.__name__ = qualname.split('.')[-1]
+    fn.__name__ = name
     fn.__qualname__ = qualname
     fn.__annotations__ = annotations or {}
     fn.__dict__.update(dict_)
@@ -679,6 +684,7 @@ def let(target, be, value, *body):
 
 def entuple(*xs):
     return xs
+
 
 def _loop(f):
     again = False
