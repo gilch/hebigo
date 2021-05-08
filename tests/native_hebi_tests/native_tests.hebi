@@ -22,21 +22,15 @@ def: greet: name
 
 class: TestAnd: TestCase
   def: .test_null: self
-    self.assertIs:
-      True
-      and:
+    self.assertIs: True and:
   def: .test_one: self x
     :@ given: st.from_type: type
-    self.assertIs:
-      x
-      and: x
+    self.assertIs: x and: x
   def: .test_two: self x y
     :@ given:
       st.from_type: type
       st.from_type: type
-    self.assertIs:
-      (x and y)
-      and: x y
+    self.assertIs: (x and y) and: x y
   def: .test_shortcut: self
     and: 0 (0/0)
     and: 1 0 (0/0)
@@ -47,27 +41,19 @@ class: TestAnd: TestCase
       st.from_type: type
       st.from_type: type
       st.from_type: type
-    self.assertIs:
-      (x and y and z)
-      and: x y z
+    self.assertIs: (x and y and z) and: x y z
 
 class: TestOr: TestCase
   def: .test_null: self
-    self.assertEqual:
-      ()
-      or:
+    self.assertEqual: () or:
   def: .test_one: self x
     :@ given: st.from_type: type
-    self.assertIs:
-      x
-      or: x
+    self.assertIs: x or: x
   def: .test_two: self x y
     :@ given:
       st.from_type: type
       st.from_type: type
-    self.assertIs:
-      (x or y)
-      or: x y
+    self.assertIs: (x or y) or: x y
   def: .test_shortcut: self
     or: 1 (0/0)
     or: 0 1 (0/0)
@@ -77,9 +63,7 @@ class: TestOr: TestCase
       st.from_type: type
       st.from_type: type
       st.from_type: type
-    self.assertIs:
-      (x or y or z)
-      or: x y z
+    self.assertIs: (x or y or z) or: x y z
 
 class: TestLet: TestCase
   def: .test_single: self
@@ -96,20 +80,28 @@ class: TestLet: TestCase
         (a + b)
   def: .test_nested: self
     self.assertEqual:
-      [-5, -50]
+      [1,2,3,4,5,6,7,8]
       !let:
-        :,: :,: x1 y1
-          :,: x2 y2
-        :be [[1, 10],
-             [6, 60]]
-        [x1 - x2, y1 - y2]
+        :,:
+          :,:
+            :,: a b
+            :,: c d
+          :,:
+            :,: e f
+            :,: g h
+        :be [[[1, 2],
+              [3, 4]],
+             [[5, 6],
+              [7, 8]]]
+        [a,b,c,d,e,f,g,h]
   def: .test_ignored: self
     self.assertEqual:
-      [1, 4, 5]
-      !let:
-        :,: a _ _ d e
-        :be [1, 2, 3, 4, 5]
-        [a, d, e]
+      [1, 4, 5, 42]
+      !let: _ :be 42
+        !let:
+          :,: a _ _ d e
+          :be [1, 2, 3, 4, 5]
+          [a, d, e, _]
   def: .test_list: self
     self.assertEqual:
       [1, 2, [3, 4, 5]]
@@ -127,16 +119,21 @@ class: TestLet: TestCase
   def: .test_mapping: self
     self.assertEqual:
       ['one', 'bar']
-      !let: :=: a 1  b 'foo'
+      !let:
+        :=: a 1  b 'foo'
         :be {1: 'one', 'foo': 'bar'}
         [a, b]
   def: .test_nested_mapping: self
     self.assertEqual:
       ['one', 'spam', 'eggs']
       !let:
-        :=: a 1
+        :=:
+          a
+          1
+          #
           :=: b 'foo'
           2
+          #
           :=: c 'bar'
           3
         :be {1: 'one',
@@ -154,28 +151,32 @@ class: TestLet: TestCase
     self.assertEqual:
       [[3,7], 3, 7, 'xy', 'x', 'y']
       !let:
-        :,: :,: x1 y1 :as point1
+        :,:
+          :,: x1 y1 :as point1
           :,: x2 y2 :as point2
         :be [[3, 7], 'xy']
         [point1, x1, y1, point2, x2, y2]
   def: .test_mapping_as: self
     self.assertEqual:
       ['spam', {1:'spam'}]
-      !let: :=: s 1 :as d
+      !let:
+        :=: s 1 :as d
         :be {1:'spam'}
         [s, d]
   def: .test_nested_mixed: self
     self.assertEqual:
       ['a', 'b', 'ab']
       !let:
-        :=: :,: a b :as s
+        :=:
+          :,: a b :as s
           1
         :be {1:'ab'}
         [a, b, s]
     self.assertEqual:
       [[{1:'ab'}], 'ab']
       !let:
-        :,: :=: s 1
+        :,:
+          :=: s 1
           :as d
         :be [{1:'ab'}]
         [d, s]
@@ -183,7 +184,8 @@ class: TestLet: TestCase
       ['a', 'b', [{1:'ab'}], 'ab']
       !let:
         :,:
-          :=: :,: a b :as s
+          :=:
+            :,: a b :as s
             1
           :as d
         :be [{1:'ab'}]
@@ -191,27 +193,31 @@ class: TestLet: TestCase
     self.assertEqual:
       'spam'
       !let:
-        :=: :,: :=: s 2
+        :=:
+          :,: :=: s 2
           1
         :be {1:[{2:'spam'}]}
         s
   def: .test_strs: self
     self.assertEqual:
       [1, 2, 3]
-      !let: :=: :strs: a b c
+      !let:
+        :=: :strs: a b c
         :be {'a':1, 'b':2, 'c':3}
         [a, b, c]
   def: .test_default: self
     self.assertEqual:
       ['A','b','C','d']
-      !let: :=: a 1  b 2  c 3  d 4  :default: a 'A'  b 'X'  c 'C'
+      !let:
+        :=: a 1  b 2  c 3  d 4  :default: a 'A'  b 'X'  c 'C'
         :be {2:'b', 4:'d'}
         [a,b,c,d]
   def: .test_default_strs: self
     self.assertEqual:
       ['ab', 22, 33]
       !let:
-        :=: :strs: a b c
+        :=:
+          :strs: a b c
           :default: a ('a'+'b')
         :be {'b':22,'c':33}
         [a, b, c]
@@ -222,27 +228,28 @@ class: TestLoop: TestCase
       'cba'
       !loop: recur: xs 'abc'  ys ''
         if: xs
-          :then: (recur(xs[:-1], ys + xs[-1]))
+          :then: recur: (xs[:-1]) (ys + xs[-1])
           :else: ys
   def: .test_try_iter: self
     !let: xs :be []
       !loop: recur: it iter:'abc'
         try: .append: xs .upper:next:it
           :except: StopIteration
-          :else: recur:it
+          :else: recur: it
       self.assertEqual:
         ['A', 'B', 'C']
         xs
   def: .test_for: self
     !let: xs :be []
       for: c :in 'abc'
-        .append: xs .upper:c
+        .append: xs .upper: c
       self.assertEqual:
         ['A', 'B', 'C']
         xs
   def: .test_for_bind: self
     !let: xs :be []
-      for: :,: c i
+      for:
+        :,: c i
         :in zip: 'abc' [1,2,3]
         xs.append:(c*i)
       self.assertEqual:
@@ -253,16 +260,14 @@ class: TestLoop: TestCase
       self.assertEqual:
         'c'
         for: c :in cs
-          if: (c=='c')
-            :then: break: c
+          if: (c=='c') :then: break: c
       self.assertEqual:
         ['d', 'e', 'f', 'g']
         list:cs
     self.assertEqual:
       None
       for: c :in 'abc'
-        if: (c=='c')
-          :then: break:
+        if: (c=='c') :then: break:
   def: .test_labeled_break: self
     !let: ijs :be []
       self.assertEqual:
@@ -320,7 +325,7 @@ class: TestLoop: TestCase
 
 class: TestDef: TestCase
   def: .test_def_ns: self
-    """ How to emulate local reassignment. """
+    """How to emulate local reassignment."""
     !let: o :be types..SimpleNamespace:
       def: o.foo 2
       def: o.foo (o.foo * 3)
