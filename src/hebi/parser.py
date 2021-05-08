@@ -216,7 +216,7 @@ QUALSYMBOL = ContextVar("QUALSYMBOL", default=None)
 def qualify_context(qualname):
     token = QUALSYMBOL.set(qualname)
     try:
-        yield
+        yield qualname
     finally:
         QUALSYMBOL.reset(token)
 
