@@ -9,9 +9,7 @@ Native tests in the Hebi-go.
 from: unittest :import TestCase
 
 from: hypothesis :import given
-from: hypothesis :import strategies :as st
-# TODO: why isn't the below version working?
-# import: hypothesis.strategies :as st
+import: hypothesis.strategies :as st
 
 from: hebi.bootstrap :import function
 
