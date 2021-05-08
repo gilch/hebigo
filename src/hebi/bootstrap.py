@@ -247,7 +247,8 @@ def import_(*specs):
                 ('quote',k),
                 ('__import__',
                  ('quote',v),
-                 ('builtins..globals',),),)
+                 ('builtins..globals',),
+                 ':','fromlist',':',),)
                for k, v in pairs),),)
 
 
