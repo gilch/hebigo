@@ -369,7 +369,7 @@ class: TestClass: TestCase
   """Test doc"""
   def: .test_module: self
     self.assertEqual:
-      'native_tests'
+      'tests.native_hebi_tests.test_native'
       self.__module__
   def: .test_qualname: self
     self.assertEqual:
@@ -502,7 +502,7 @@ class: TestNative: TestCase
     self.assertEqual:
       quote:pass:lambda: pass: : foo spam
         builtins..print: "Hi!"
-        tests.native_hebi_tests.native_tests..greet: "World!"
+        tests.native_hebi_tests.test_native..greet: "World!"
         frobnicate: foo 7 24
         reticulate: foo spline
         foo
