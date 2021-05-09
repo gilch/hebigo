@@ -39,5 +39,7 @@ jobs:
         pip install dist/*
     - name: Run unit tests
       run: |
-        python -m unittest discover
+        pwd
+        python -c 'import tests.compile_native_tests'
+        python -m unittest discover --verbose
 
