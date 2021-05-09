@@ -37,8 +37,7 @@ jobs:
     - name: Install Hebigo package from dist/
       run: |
         pip install dist/*
-    - name: Test install with pytest (including doctests)
+    - name: Run unit tests
       run: |
-        python -c "import tests"  # Compiles hissp.basic on package import.
-        pytest -v --cov=hissp --cov-report=xml --doctest-modules --doctest-glob *.md --doctest-glob *.rst tests/ docs/ $(python -c "import hebi; print(hebi.__path__[0])")
+        python -m unittest discover
 
