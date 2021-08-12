@@ -191,3 +191,51 @@ And finally, the `!` is an abbreviation for `hebi.basic.._macro_.`,
 the qualifier for Hebigo's included macros.
 (This can't work in bracketed expressions either.)
 Hebigo has no other "reader macros".
+
+## Examples
+
+(Also see Hebigo's native tests.)
+
+### Obligatory factorial example.
+
+In basic Lissp. (Prelude assumed.)
+```racket
+(define factorial
+  (lambda n
+    (if-else (eq n 0)
+      1
+      (mul n (factorial (sub n 1))))))
+```
+Literal translation of the above to Hebigo.
+```python
+define: factorial
+  lambda: n
+    ifxH_else: eq: n 0
+      1
+      mul: n factorial: sub: n 1
+```
+Note the munged name.
+
+In more ideomatic Hebigo with statement macros and bracketed expressions.
+```python
+def: factorial: n
+  if: (n == 0)
+    :then: 1
+    :else: (n * factorial(n - 1))
+```
+Literal translation of the above to Lissp. (Statement macros required.)
+```racket
+(def_ (factorial n)
+  (if_ .#"n == 0"
+    (:then 1)
+    (:else .#"n * factorial(n - 1)")))
+```
+Note the injections.
+
+Finally, in ideomatic Lissp with Hebigo's macros.
+```racket
+(def_ (factorial n)
+  (if-else (eq n 0)
+    1
+    (mul n (factorial (sub n 1)))))
+```
