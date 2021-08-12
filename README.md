@@ -239,3 +239,53 @@ Finally, in ideomatic Lissp with Hebigo's macros.
     1
     (mul n (factorial (sub n 1)))))
 ```
+
+### Fibonacci
+
+In Python.
+```python
+from functools import lru_cache
+
+@lru_cache(None)
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+```
+In Hebigo.
+```python
+def: fibonacci: n
+  :@ functools..lru_cache: None  # Qualified identifier in decorator.
+  if: (n <= 1)
+    :then: n
+    :else: (fibonacci(n - 1) + fibonacci(n - 2))
+```
+Literal translation to Lissp.
+```racket
+(def_ (fibonacci n)
+  :@ (functools..lru_cache None) ; Qualified identifier in decorator.
+  (if_ .#"n <= 1"
+    (:then n)
+    (:else .#"fibonacci(n - 1) + fibonacci(n - 2)")))
+```
+In basic Lissp.
+```racket
+(define fibonacci
+  ((functools..lru_cache None) ; Callable expression.
+   (lambda n
+     (if-else (le n 1)
+       n
+       (add (fibonacci (sub n 1))
+            (fibonacci (sub n 2)))))))
+```
+Literal translation to Hebigo
+```python
+define: fibonacci
+  pass: functools..lru_cache: None  # Callable expression.
+    lambda: n
+      ifxH_else: le: n 1
+        n
+        add:
+          fibonacci: sub: n 1
+          fibonacci: sub: n 2
+```
