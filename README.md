@@ -210,7 +210,7 @@ Literal translation of the above to Hebigo.
 ```python
 define: factorial
   lambda: n
-    ifxH_else: eq: n 0
+    ifQz_else: eq: n 0
       1
       mul: n factorial: sub: n 1
 ```
@@ -283,7 +283,7 @@ Literal translation to Hebigo
 define: fibonacci
   pass: functools..lru_cache: None  # Callable expression.
     lambda: n
-      ifxH_else: le: n 1
+      ifQz_else: le: n 1
         n
         add:
           fibonacci: sub: n 1
