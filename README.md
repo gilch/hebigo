@@ -216,7 +216,7 @@ define: factorial
 ```
 Note the munged name.
 
-In more ideomatic Hebigo with statement macros and bracketed expressions.
+In more idiomatic Hebigo with statement macros and bracketed expressions.
 ```python
 def: factorial: n
   if: (n == 0)
@@ -232,7 +232,7 @@ Literal translation of the above to Lissp. (Statement macros required.)
 ```
 Note the injections.
 
-Finally, in ideomatic Lissp with Hebigo's macros.
+Finally, in idiomatic Lissp with Hebigo's macros.
 ```racket
 (def_ (factorial n)
   (if-else (eq n 0)
