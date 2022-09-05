@@ -5,6 +5,7 @@
 import ast
 import os
 import re
+from codeop import compile_command
 from contextlib import contextmanager
 from contextvars import ContextVar
 from importlib import resources
@@ -59,10 +60,13 @@ IGNORE = frozenset(
     }
 )
 
+class SoftSyntaxError(SyntaxError):
+    pass
+
 
 def lex(code):
     """
-    Because Hebigo is context sensitive, the lexer has to do extra work.
+    Because Hebigo is context-sensitive, the lexer has to do extra work.
     It keeps an indentation stack and a count of open hot word forms,
     so it can infer when to close them.
 
@@ -81,19 +85,15 @@ def lex(code):
         assert case != "error"
         if case == "python":
             python_list = [group]
-            last_error = None
-            while 1:
+            while True:
                 try:
                     t = next(tokens)
-                except StopIteration as si:
-                    raise last_error or si
+                except StopIteration:
+                    raise SoftSyntaxError("Incomplete bracketed expression.") from None
                 python_list.append(t.group())
                 if t.lastgroup in {"end", "python"} and t.group() == end(group):
                     python = "".join(python_list)
-                    try:
-                        ast.parse(python + "\n\n", mode="eval")
-                    except SyntaxError as se:
-                        last_error = se
+                    if compile_command(python + "\n\n", symbol="eval") is None:
                         continue
                     else:
                         yield "python", python

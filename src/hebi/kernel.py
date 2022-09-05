@@ -9,6 +9,7 @@ from hissp.compiler import Compiler
 from ipykernel.kernelbase import Kernel
 
 from hebi import parser
+from hebi.parser import SoftSyntaxError
 
 
 class HebigoKernel(Kernel):
@@ -77,8 +78,10 @@ class HebigoKernel(Kernel):
             status = "complete"
         try:
             list(parser.reads(code))
-        except:
+        except SoftSyntaxError:
             status = "incomplete"
+        except SyntaxError:
+            status = "invalid"
         assert status in {"complete", "incomplete", "invalid", "unknown"}
         return {"status": status}
 
