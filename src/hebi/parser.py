@@ -81,17 +81,20 @@ def lex(code):
         assert case != "error"
         if case == "python":
             python_list = [group]
+            last_error = None
             while 1:
-                t = next(tokens)
+                try:
+                    t = next(tokens)
+                except StopIteration as si:
+                    raise last_error or si
                 python_list.append(t.group())
                 if t.lastgroup in {"end", "python"} and t.group() == end(group):
                     python = "".join(python_list)
                     try:
                         ast.parse(python + "\n\n", mode="eval")
                     except SyntaxError as se:
-                        if "EOL" in se.msg or "EOF" in se.msg:
-                            continue  # Token not complete yet.
-                        raise
+                        last_error = se
+                        continue
                     else:
                         yield "python", python
                         break
