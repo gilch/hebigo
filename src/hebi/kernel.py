@@ -1,7 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
+import re
 import traceback
 from typing import Optional
 
@@ -74,7 +74,7 @@ class HebigoKernel(Kernel):
 
     def do_is_complete(self, code: str):
         status = "incomplete"
-        if ": " not in code and not code.endswith(':') or code.endswith("\n"):
+        if code.endswith("\n") or not re.search(r":(?:\n| |$)", code):
             status = "complete"
         try:
             list(parser.reads(code))
