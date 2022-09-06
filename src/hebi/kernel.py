@@ -1,7 +1,6 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-
 import traceback
 from typing import Optional
 
@@ -9,7 +8,6 @@ from hissp.compiler import Compiler
 from ipykernel.kernelbase import Kernel
 
 from hebi import parser
-from hebi.parser import SoftSyntaxError
 
 
 class HebigoKernel(Kernel):
@@ -74,13 +72,15 @@ class HebigoKernel(Kernel):
 
     def do_is_complete(self, code: str):
         status = "incomplete"
-        if ": " not in code and not code.endswith(':') or code.endswith("\n"):
+        if code.endswith("\n"):  # Empty line; user declined more input.
             status = "complete"
         try:
+            if not 'multiary' in dict(parser.lex(code)):
+                status = "complete"  # Nothing to take a block.
             list(parser.reads(code))
-        except SoftSyntaxError:
-            status = "incomplete"
-        except SyntaxError:
+        except parser.SoftSyntaxError:
+            status = "incomplete"  # Bracketed expression.
+        except Exception:
             status = "invalid"
         assert status in {"complete", "incomplete", "invalid", "unknown"}
         return {"status": status}
