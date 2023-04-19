@@ -282,8 +282,9 @@ def _if_(b, thunk, *elifs, else_=lambda:()):
         return thunk()
     elifs = iter(elifs)
     for elif_ in elifs:
+        thunk = next(elifs)
         if elif_():
-            return next(elifs)()
+            return thunk()
     return else_()
 
 
