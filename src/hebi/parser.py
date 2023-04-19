@@ -21,7 +21,13 @@ TOKEN = re.compile(
 |(?P<comment>\n?[ ]*[#].*)
 |(?P<indent>(?<=\n)[ ]*(?=[^\r\n]))
 |(?P<empty>\([ \r\n]*\))
-|(?P<python>[(\[{]|(?:[rR][bfBF]?|[bfBF][rR]?|[uU])?(?:'''|["]""|['"]))
+|(?P<bracket>[(\[{])
+|(?P<string>
+  (?:[rR][bfBF]?|[bfBF][rR]?|[uU])?
+  (?:'''(?:[^'\\]|\\.|\\\n|''?[^'])*'''
+  |["]""(?:[^"\\]|\\.|\\\n|""?[^"])*["]""
+  |'(?:[^'\\]|\\.|\\\n)*'
+  |"(?:[^"\\]|\\.|\\\n)*"))
 |(?P<blank>\r?\n)
 |(?P<sp>[ ])
 |(?P<eol>(?<=\n))
@@ -83,7 +89,9 @@ def lex(code):
         case = token.lastgroup
         group = token.group()
         assert case != "error"
-        if case == "python":
+        if case == "string":
+            yield "python", group
+        elif case == "bracket":
             python_list = [group]
             while True:
                 try:
@@ -91,7 +99,7 @@ def lex(code):
                 except StopIteration:
                     raise SoftSyntaxError("Incomplete bracketed expression.") from None
                 python_list.append(t.group())
-                if t.lastgroup in {"end", "python"} and t.group() == end(group):
+                if t.lastgroup == "end" and t.group() == end(group):
                     python = "".join(python_list)
                     if compile_command(python + "\n\n", symbol="eval") is None:
                         continue
